@@ -8667,15 +8667,15 @@ RectTransform:
   m_GameObject: {fileID: 288643475}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 106.07634, y: 187.53473, z: 106.07634}
+  m_LocalScale: {x: 455.51956, y: 874.01715, z: 455.51956}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1524615529}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -13723, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -13897, y: 267.01}
+  m_SizeDelta: {x: 32, y: 32}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &288643477
 MonoBehaviour:
@@ -8697,7 +8697,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: fa2f6b5423c8782448e88971a1580bff, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5880871d6014fde41bc7b5b1cfdb4733, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -19259,7 +19259,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 7347, y: 0}
+  m_AnchoredPosition: {x: 8871, y: -2493}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &753089164
@@ -25984,12 +25984,12 @@ MonoBehaviour:
   percentText: {fileID: 1895437827}
   barFillImage: {fileID: 1334729868}
   portraitImage: {fileID: 288643477}
-  calmColor: {r: 0.3, g: 0.7, b: 1, a: 1}
-  aggressiveColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  stage4Sprite: {fileID: 21300000, guid: fa2f6b5423c8782448e88971a1580bff, type: 3}
-  stage3Sprite: {fileID: 21300000, guid: 7e4b6eccd3ba18947af2ef5dce658226, type: 3}
-  stage2Sprite: {fileID: 21300000, guid: c06785f09fd83b04a8cdfc0b532c9799, type: 3}
-  stage1Sprite: {fileID: 21300000, guid: 2e676e5289f939949a189f5976c4ede2, type: 3}
+  calmColor: {r: 0.14117648, g: 0.31764707, b: 0.72156864, a: 1}
+  aggressiveColor: {r: 0.9058824, g: 0.30588236, b: 0.11764707, a: 1}
+  stage4Sprite: {fileID: 21300000, guid: 5880871d6014fde41bc7b5b1cfdb4733, type: 3}
+  stage3Sprite: {fileID: 21300000, guid: b1bd61b3cae579c4088f2b6d8554c529, type: 3}
+  stage2Sprite: {fileID: 21300000, guid: 956dddfcd04d01f4faf96a155f596a9e, type: 3}
+  stage1Sprite: {fileID: 21300000, guid: 8986ec1179f3d8546a5a8c15135cb68d, type: 3}
 --- !u!4 &1271930518
 Transform:
   m_ObjectHideFlags: 0
@@ -29654,7 +29654,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 817, y: -942}
+  m_AnchoredPosition: {x: 817, y: -1694}
   m_SizeDelta: {x: 38240, y: 21510}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1524615530
