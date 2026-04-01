@@ -3,30 +3,37 @@ using System.Collections;
 
 public class TaxiRideManager : MonoBehaviour
 {
+    public static TaxiRideManager Instance { get; private set; }
+
     [Header("UI References")]
     public PhoneHomeUI phoneHomeUI;
     public PhoneTaxiUI phoneTaxiUI;
 
     [Header("Taxi App Offers UI")]
-    public TaxiAppOffersUI offersUI;   // drag in
+    public TaxiAppOffersUI offersUI;
 
     [Header("Taxi App Views (prevents GPS jumping)")]
-    public GameObject offersView;      // UI parent that contains the 3 offer slots
-    public GameObject activeRideView;  // UI parent that contains ride info + GPS arrow
+    public GameObject offersView;
+    public GameObject activeRideView;
 
     [Header("Dialogue Popup UI (sprite pops up)")]
-    public PassengerDialogueUI dialogueUI; // optional (Canvas object)
+    public PassengerDialogueUI dialogueUI;
 
     [Header("World References")]
-    public PickupZone[] pickupZones;         // green squares (world triggers)
-    public DropoffZone[] dropoffs;           // dropoff triggers
-    public PassengerPickup[] passengers;     // DATA ONLY (name, stars, portrait)
+    public PickupZone[] pickupZones;
+    public DropoffZone[] dropoffs;
+    public PassengerPickup[] passengers;
 
     [Header("Offers Settings")]
     public int offersCount = 3;
 
     [Header("Flow Tuning")]
     public float nextRideDelay = 0.5f;
+
+    [Header("Fare Upgrades")]
+    public float permanentFareBonus = 0f;
+    public float temporaryFareBonus = 0f;
+    public int surgeDaysRemaining = 0;
 
     private enum RideState { Idle, ChoosingOffer, GoingToPickup, GoingToDropoff }
     private RideState state = RideState.Idle;
@@ -36,7 +43,6 @@ public class TaxiRideManager : MonoBehaviour
 
     private Coroutine nextRideRoutine;
 
-    // ===== Offer Data =====
     [System.Serializable]
     public struct RideOffer
     {
@@ -51,11 +57,15 @@ public class TaxiRideManager : MonoBehaviour
 
     private RideOffer[] offers;
 
-    // Cache so Taxi app + GPS can always refresh cleanly
     private string currentRideMsg = "";
     private Transform currentGpsTarget = null;
 
     public bool CanAcceptOffers => state == RideState.ChoosingOffer;
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     void Start()
     {
@@ -63,18 +73,11 @@ public class TaxiRideManager : MonoBehaviour
         BuildNewOffers();
     }
 
-    // =========================
-    // VIEWS
-    // =========================
     private void SetTaxiViews(bool showOffers)
     {
         if (offersView != null) offersView.SetActive(showOffers);
         if (activeRideView != null) activeRideView.SetActive(!showOffers);
     }
-
-    // =========================
-    // OFFERS
-    // =========================
 
     private void BuildNewOffers()
     {
@@ -94,24 +97,20 @@ public class TaxiRideManager : MonoBehaviour
 
         state = RideState.ChoosingOffer;
 
-        // Show offers view, hide active ride view
         SetTaxiViews(true);
 
-        // Turn OFF all pickup zones while choosing
         for (int i = 0; i < pickupZones.Length; i++)
         {
             if (pickupZones[i] != null)
                 pickupZones[i].SetActive(false);
         }
 
-        // Hide all dropoffs
         for (int i = 0; i < dropoffs.Length; i++)
         {
             if (dropoffs[i] != null)
                 dropoffs[i].gameObject.SetActive(false);
         }
 
-        // Build random offers (WITH replacement, duplicates allowed)
         for (int i = 0; i < offers.Length; i++)
         {
             int pIndex = Random.Range(0, passengers.Length);
@@ -132,11 +131,9 @@ public class TaxiRideManager : MonoBehaviour
             };
         }
 
-        // Home notification: generic
         if (phoneHomeUI != null)
             phoneHomeUI.ShowTaxiNotification($"{offers.Length} ride requests waiting — open Taxi app to choose.");
 
-        // Taxi app: show offers list (no GPS yet)
         currentRideMsg = "Choose a ride:";
         currentGpsTarget = null;
         PushTaxiUI();
@@ -176,28 +173,23 @@ public class TaxiRideManager : MonoBehaviour
 
         state = RideState.GoingToPickup;
 
-        // Switch to active ride UI (GPS lives here so it won't jump)
         SetTaxiViews(false);
 
-        // Turn OFF all pickup zones, then enable ONLY the accepted one
         for (int i = 0; i < pickupZones.Length; i++)
         {
             if (pickupZones[i] != null)
                 pickupZones[i].SetActive(false);
         }
 
-        // Ensure the pickup zone knows who to call
         currentPickupZone.rideManager = this;
         currentPickupZone.SetActive(true);
 
-        // Clear home notif
         if (phoneHomeUI != null)
             phoneHomeUI.ClearTaxiNotification();
 
         string msg = $"{currentPassenger.passengerName} accepted — go to the pickup square";
         currentRideMsg = msg;
 
-        // GPS goes to pickup zone center (not a passenger sprite)
         currentGpsTarget = currentPickupZone.transform;
         PushTaxiUI();
 
@@ -207,11 +199,6 @@ public class TaxiRideManager : MonoBehaviour
         Debug.Log($"[TaxiRideManager] Accepted offer {offerIndex}: {currentPassenger.passengerName} -> {currentDropoff.dropoffName}");
     }
 
-    // =========================
-    // PICKUP / DROPOFF FLOW
-    // =========================
-
-    // Called by PickupZone when player enters green square
     public void OnPickupZoneEntered(PickupZone zone)
     {
         if (state != RideState.GoingToPickup)
@@ -220,16 +207,13 @@ public class TaxiRideManager : MonoBehaviour
         if (currentPassengerIndex < 0 || currentPassengerIndex >= pickupZones.Length)
             return;
 
-        // Only accept pickup if it's the active zone
         if (zone != pickupZones[currentPassengerIndex])
             return;
 
         state = RideState.GoingToDropoff;
 
-        // Turn off pickup zone
         zone.SetActive(false);
 
-        // Show dialogue popup with the passenger sprite
         PassengerPickup currentPassenger = passengers[currentPassengerIndex];
         if (dialogueUI != null && currentPassenger != null)
             dialogueUI.Show(currentPassenger.passengerName, currentPassenger.portraitSprite);
@@ -240,7 +224,6 @@ public class TaxiRideManager : MonoBehaviour
         DropoffZone currentDropoff = dropoffs[currentDropoffIndex];
         if (currentDropoff == null) return;
 
-        // Activate dropoff
         currentDropoff.gameObject.SetActive(true);
 
         string msg = $"Taking {currentPassenger.passengerName} to {currentDropoff.dropoffName}";
@@ -251,7 +234,6 @@ public class TaxiRideManager : MonoBehaviour
         Debug.Log($"Picked up {currentPassenger.passengerName}, heading to {currentDropoff.dropoffName}");
     }
 
-    // DropoffZone calls this when player enters dropoff square
     public void OnDropoffTrigger(DropoffZone zone)
     {
         if (state != RideState.GoingToDropoff)
@@ -283,7 +265,8 @@ public class TaxiRideManager : MonoBehaviour
         if (GameManager.Instance != null)
             GameManager.Instance.AddRideScore();
 
-        // Rebuild offers after delay (and switch back to offers view inside BuildNewOffers)
+        Debug.Log("[TaxiRideManager] Current fare multiplier = " + GetCurrentFareMultiplier());
+
         if (nextRideRoutine != null)
             StopCoroutine(nextRideRoutine);
 
@@ -299,10 +282,6 @@ public class TaxiRideManager : MonoBehaviour
         nextRideRoutine = null;
     }
 
-    // =========================
-    // TAXI UI PUSH
-    // =========================
-
     private void PushTaxiUI()
     {
         if (phoneTaxiUI != null)
@@ -313,6 +292,41 @@ public class TaxiRideManager : MonoBehaviour
                 phoneTaxiUI.SetGpsTarget(currentGpsTarget);
             else
                 phoneTaxiUI.ClearGpsTarget();
+        }
+    }
+
+    public void AddFareMultiplier(float amount)
+    {
+        permanentFareBonus += amount;
+        Debug.Log("[TaxiRideManager] Permanent fare bonus now = " + permanentFareBonus);
+    }
+
+    public void AddTemporaryFareMultiplier(float amount, int days)
+    {
+        temporaryFareBonus += amount;
+        surgeDaysRemaining = Mathf.Max(surgeDaysRemaining, days);
+
+        Debug.Log("[TaxiRideManager] Temporary fare bonus now = " + temporaryFareBonus +
+                  " for " + surgeDaysRemaining + " day(s)");
+    }
+
+    public float GetCurrentFareMultiplier()
+    {
+        return 1f + permanentFareBonus + temporaryFareBonus;
+    }
+
+    public void AdvanceUpgradeDay()
+    {
+        if (surgeDaysRemaining > 0)
+        {
+            surgeDaysRemaining--;
+
+            if (surgeDaysRemaining <= 0)
+            {
+                temporaryFareBonus = 0f;
+                surgeDaysRemaining = 0;
+                Debug.Log("[TaxiRideManager] Surge pricing expired.");
+            }
         }
     }
 }

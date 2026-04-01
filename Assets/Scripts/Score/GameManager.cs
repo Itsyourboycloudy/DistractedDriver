@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.VFX;
 using TMPro;
 using UnityEngine.SceneManagement;
@@ -13,6 +14,7 @@ public class GameManager : MonoBehaviour
 
     private float timeRemaining;
     private bool timerRunning = true;
+    private bool timeStopPaused = false;
 
     [Header("Score")]
     public TMP_Text scoreText;
@@ -37,7 +39,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Win VFX")]
     public VisualEffect confettiVFX;
-    public float confettiPlaySeconds = 2f; // let it play before freezing
+    public float confettiPlaySeconds = 2f;
 
     private void Awake()
     {
@@ -46,6 +48,7 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
     }
 
@@ -66,22 +69,25 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (!timerRunning) return;
-
-        timeRemaining -= Time.deltaTime;
-
-        if (timeRemaining <= 0f)
+        // Timer only stops during time stop
+        if (timerRunning && !timeStopPaused)
         {
-            timeRemaining = 0f;
-            timerRunning = false;
-            UpdateTimerUI();
-            OnTimeUp();
-        }
-        else
-        {
-            UpdateTimerUI();
+            timeRemaining -= Time.deltaTime;
+
+            if (timeRemaining <= 0f)
+            {
+                timeRemaining = 0f;
+                timerRunning = false;
+                UpdateTimerUI();
+                OnTimeUp();
+            }
+            else
+            {
+                UpdateTimerUI();
+            }
         }
 
+        // keep tracking car movement even during time stop
         if (player != null)
         {
             float frameDistance = Vector3.Distance(player.position, lastPosition);
@@ -118,38 +124,37 @@ public class GameManager : MonoBehaviour
         UpdateScoreUI();
     }
 
+    public void SetTimeStopPaused(bool paused)
+    {
+        timeStopPaused = paused;
+    }
+
     private void OnTimeUp()
     {
         Debug.Log("Time’s up!");
 
-        // Calculate average speed
         float timePlayed = GetTimePlayed();
         averageSpeed = (timePlayed > 0f) ? (totalDistanceDriven / timePlayed) : 0f;
 
         Debug.Log($"Driving stats: distance={totalDistanceDriven:F1}m, avgSpeed={averageSpeed:F2} m/s");
 
-        // Save
         if (saveSystem != null) saveSystem.SaveDataNow();
         else Debug.LogWarning("GameManager: saveSystem is null, not saving.");
 
-        // Show end screen
         if (endScreenPanel != null)
             endScreenPanel.SetActive(true);
 
         if (finalScoreText != null)
             finalScoreText.text = "Score: " + score;
 
-        // Play confetti NOW (before freeze)
         if (confettiVFX != null)
             confettiVFX.Play();
 
-        // Freeze after a short delay so VFX can play
         StartCoroutine(FreezeAfter(confettiPlaySeconds));
     }
 
-    private System.Collections.IEnumerator FreezeAfter(float delay)
+    private IEnumerator FreezeAfter(float delay)
     {
-        // Use unscaled time so it still counts even if timeScale changes later
         float t = 0f;
         while (t < delay)
         {

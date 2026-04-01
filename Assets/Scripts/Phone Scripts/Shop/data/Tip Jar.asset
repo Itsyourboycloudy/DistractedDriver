@@ -16,3 +16,8 @@ MonoBehaviour:
   description: Passengers leave slightly better tips, increasing your ride income.
   icon: {fileID: 21300000, guid: fbfa8995b67bbb0408e03db6073d040f, type: 3}
   rarity: 1
+  upgradeType: 4
+  value: 10
+  durationDays: 0
+  allowDuplicateInShop: 0
+  canBuyMultiple: 1

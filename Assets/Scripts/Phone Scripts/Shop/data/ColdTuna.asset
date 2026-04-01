@@ -17,3 +17,8 @@ MonoBehaviour:
     you stars.
   icon: {fileID: 21300000, guid: fbfa8995b67bbb0408e03db6073d040f, type: 3}
   rarity: 0
+  upgradeType: 2
+  value: 10
+  durationDays: 0
+  allowDuplicateInShop: 0
+  canBuyMultiple: 1

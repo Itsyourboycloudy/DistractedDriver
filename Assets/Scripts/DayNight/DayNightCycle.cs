@@ -41,6 +41,7 @@ public class DayNightCycle : MonoBehaviour
     private bool isFading = false;
     private float fadeTimer = 0f;
     private bool endingSequenceStarted = false;
+    private bool timeStopPaused = false;
 
     public float DayProgress01 => Mathf.Clamp01(dayTimer / dayLengthSeconds);
     public bool DayEnded => dayEnded;
@@ -64,11 +65,9 @@ public class DayNightCycle : MonoBehaviour
         SetDayOverAlpha(0f);
         ApplySun(0f);
 
-        // Make sure VFX starts disabled
         if (inCarWinVFX != null)
             inCarWinVFX.gameObject.SetActive(false);
 
-        // Make sure sound does not auto-play
         if (inCarWinAudioSource != null)
             inCarWinAudioSource.Stop();
     }
@@ -77,18 +76,24 @@ public class DayNightCycle : MonoBehaviour
     {
         if (!dayEnded)
         {
-            dayTimer += Time.deltaTime;
-
-            if (dayTimer >= dayLengthSeconds && !endingSequenceStarted)
+            if (!timeStopPaused)
             {
-                dayTimer = dayLengthSeconds;
-                StartCoroutine(EndDaySequence());
-            }
+                dayTimer += Time.deltaTime;
 
-            ApplySun(DayProgress01);
+                if (dayTimer >= dayLengthSeconds && !endingSequenceStarted)
+                {
+                    dayTimer = dayLengthSeconds;
+                    StartCoroutine(EndDaySequence());
+                }
+
+                ApplySun(DayProgress01);
+            }
         }
         else if (isFading)
         {
+            if (timeStopPaused)
+                return;
+
             fadeTimer += Time.deltaTime;
             float t = Mathf.Clamp01(fadeTimer / fadeDuration);
 
@@ -130,7 +135,6 @@ public class DayNightCycle : MonoBehaviour
 
         Debug.Log("[DayNight] Day ended. Playing in-car FX.");
 
-        // Enable + restart + play VFX
         if (inCarWinVFX != null)
         {
             inCarWinVFX.gameObject.SetActive(true);
@@ -138,14 +142,12 @@ public class DayNightCycle : MonoBehaviour
             inCarWinVFX.Play();
         }
 
-        // Play sound through your mixer-routed AudioSource
         if (inCarWinAudioSource != null)
         {
             inCarWinAudioSource.Stop();
             inCarWinAudioSource.Play();
         }
 
-        // Let the player see/hear it before fade
         yield return new WaitForSeconds(preFadeDelay);
 
         if (dayOverPanel != null)
@@ -185,6 +187,7 @@ public class DayNightCycle : MonoBehaviour
         isFading = false;
         fadeTimer = 0f;
         endingSequenceStarted = false;
+        timeStopPaused = false;
 
         currentDay++;
 
@@ -194,17 +197,20 @@ public class DayNightCycle : MonoBehaviour
         SetDayOverAlpha(0f);
         ApplySun(0f);
 
-        // Stop + disable VFX so it does not hang around
         if (inCarWinVFX != null)
         {
             inCarWinVFX.Stop();
             inCarWinVFX.gameObject.SetActive(false);
         }
 
-        // Stop audio too
         if (inCarWinAudioSource != null)
             inCarWinAudioSource.Stop();
 
         Debug.Log("[DayNight] Day reset. Current day is now " + currentDay);
+    }
+
+    public void SetTimeStopPaused(bool paused)
+    {
+        timeStopPaused = paused;
     }
 }
