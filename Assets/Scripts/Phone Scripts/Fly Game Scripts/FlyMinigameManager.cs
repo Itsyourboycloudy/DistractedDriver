@@ -73,6 +73,11 @@ public class FlyMinigameManager : MonoBehaviour
             DopamineManager.Instance.ResetPhoneGameMultiplier();
         }
 
+        if (FlyMusicManager.Instance != null)
+        {
+            FlyMusicManager.Instance.ReturnToFly1();
+        }
+
         Debug.Log("[FlyGame] ShowMainMenu()");
     }
 
@@ -104,6 +109,11 @@ public class FlyMinigameManager : MonoBehaviour
         score = 0;
         UpdateUI();
 
+        if (FlyMusicManager.Instance != null)
+        {
+            FlyMusicManager.Instance.ReturnToFly1();
+        }
+
         Debug.Log("[FlyGame] Waiting for first click");
     }
 
@@ -131,6 +141,11 @@ public class FlyMinigameManager : MonoBehaviour
 
         if (spawner != null)
             spawner.enabled = true;
+
+        if (FlyMusicManager.Instance != null)
+        {
+            FlyMusicManager.Instance.RequestTransitionToGameplay();
+        }
 
         Debug.Log("[FlyGame] BeginActualRun()");
     }
@@ -181,6 +196,11 @@ public class FlyMinigameManager : MonoBehaviour
         score = 0;
         UpdateUI();
 
+        if (FlyMusicManager.Instance != null)
+        {
+            FlyMusicManager.Instance.StopMusic();
+        }
+
         Debug.Log("[FlyGame] ResetGame()");
     }
 
@@ -205,6 +225,11 @@ public class FlyMinigameManager : MonoBehaviour
 
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
+
+        if (FlyMusicManager.Instance != null)
+        {
+            FlyMusicManager.Instance.ReturnToFly1();
+        }
 
         float mult = 1f;
         if (DopamineManager.Instance != null)

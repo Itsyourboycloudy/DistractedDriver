@@ -52,6 +52,9 @@ public class PhoneAppManager : MonoBehaviour
             minigameSelector.HideAllGames();
         }
 
+        if (ShopMusicPlayer.Instance != null)
+            ShopMusicPlayer.Instance.StopShopMusic();
+
         CurrentApp = App.Home;
         EnforcePanels();
     }
@@ -64,22 +67,32 @@ public class PhoneAppManager : MonoBehaviour
             minigameSelector.HideAllGames();
         }
 
+        if (ShopMusicPlayer.Instance != null)
+            ShopMusicPlayer.Instance.StopShopMusic();
+
         CurrentApp = App.Uber;
         EnforcePanels();
     }
 
     public void OpenGame()
     {
+        if (ShopMusicPlayer.Instance != null)
+            ShopMusicPlayer.Instance.StopShopMusic();
+
         CurrentApp = App.Game;
         EnforcePanels();
 
         if (minigameSelector != null)
             minigameSelector.OpenRandomUnlockedGame();
     }
+
     public void OpenShop()
     {
         CurrentApp = App.Shop;
         EnforcePanels();
+
+        if (ShopMusicPlayer.Instance != null)
+            ShopMusicPlayer.Instance.PlayShopMusic();
     }
 
     // Old tap-button method, no longer needed

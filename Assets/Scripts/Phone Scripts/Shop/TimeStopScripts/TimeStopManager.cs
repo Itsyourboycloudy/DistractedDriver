@@ -13,6 +13,7 @@ public class TimeStopManager : MonoBehaviour
 
     [Header("Visual Effect")]
     public GameObject blackWhiteEffectObject;
+    public TimeStopBubbleOverlay bubbleOverlay;
 
     [Header("Audio")]
     public AudioSource activationSfxSource;
@@ -77,6 +78,11 @@ public class TimeStopManager : MonoBehaviour
 
         Debug.Log("[TimeStop] TIME STOP STARTED");
 
+        // bubble expands out from player
+        if (bubbleOverlay != null)
+            bubbleOverlay.PlayExpand();
+
+        // black/white stays on during the stop
         if (blackWhiteEffectObject != null)
             blackWhiteEffectObject.SetActive(true);
 
@@ -84,7 +90,7 @@ public class TimeStopManager : MonoBehaviour
         if (activationSfxSource != null && activationClip != null)
             activationSfxSource.PlayOneShot(activationClip);
 
-        // let the activation sound breathe for a moment
+        // let activation sound breathe first
         if (snapshotDelayAfterActivation > 0f)
             yield return new WaitForSecondsRealtime(snapshotDelayAfterActivation);
 
@@ -92,7 +98,7 @@ public class TimeStopManager : MonoBehaviour
         if (timeStopSnapshot != null)
             timeStopSnapshot.TransitionTo(0.03f);
 
-        // slight delay before song
+        // small delay before song
         if (musicStartDelay > 0f)
             yield return new WaitForSecondsRealtime(musicStartDelay);
 
@@ -122,6 +128,10 @@ public class TimeStopManager : MonoBehaviour
 
         if (normalSnapshot != null)
             normalSnapshot.TransitionTo(0.08f);
+
+        // bubble collapses back
+        if (bubbleOverlay != null)
+            bubbleOverlay.PlayCollapse();
 
         if (blackWhiteEffectObject != null)
             blackWhiteEffectObject.SetActive(false);
