@@ -15,12 +15,12 @@ public class ShopUpgradeData : ScriptableObject
     [Header("Effect")]
     public ShopUpgradeType upgradeType;
     public float value = 0f;
-    public int durationDays = 0; // only for temporary upgrades like Surge Pricing
+    public int durationDays = 0;
 
     [Header("Duplicate Rules")]
     [Tooltip("If true, this upgrade is allowed to appear more than once in the same shop roll.")]
     public bool allowDuplicateInShop = false;
 
-    [Tooltip("If false, player can only ever buy one copy of this upgrade.")]
+    [Tooltip("If false, player can only buy this once total.")]
     public bool canBuyMultiple = true;
 }

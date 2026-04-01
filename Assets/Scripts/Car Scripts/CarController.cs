@@ -45,7 +45,11 @@ public class CarController : MonoBehaviour
     public float skidThreshold = 8f;
     public ParticleSystem skidParticles;
     public AudioSource skidSound;
+    public static CarController Instance { get; private set; }
 
+    [Header("Upgrade Stats")]
+    public float baseMoveSpeed = 22f;
+    private float permanentSpeedBonus = 0f;
     private Rigidbody rb;
     private float currentSpeed = 0f;
     private bool isDrifting = false;
@@ -70,8 +74,13 @@ public class CarController : MonoBehaviour
 
     void Start()
     {
+        Instance = this;
+
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
+
+        baseMoveSpeed = moveSpeed;
+        moveSpeed = baseMoveSpeed + permanentSpeedBonus;
 
         if (boostSpeedAddByLevel == null || boostSpeedAddByLevel.Length < boostLevels)
             Debug.LogWarning("boostSpeedAddByLevel needs at least 'boostLevels' elements.");
@@ -277,5 +286,17 @@ public class CarController : MonoBehaviour
     void FixedUpdate()
     {
         rb.linearVelocity = transform.forward * currentSpeed;
+    }
+    public void AddSpeedUpgrade(float amount)
+    {
+        permanentSpeedBonus += amount;
+        moveSpeed = baseMoveSpeed + permanentSpeedBonus;
+
+        Debug.Log("Speed upgrade applied. moveSpeed = " + moveSpeed);
+    }
+
+    public float GetCurrentBaseSpeed()
+    {
+        return moveSpeed;
     }
 }

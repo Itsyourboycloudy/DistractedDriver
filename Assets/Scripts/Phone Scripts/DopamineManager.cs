@@ -33,6 +33,10 @@ public class DopamineManager : MonoBehaviour
     public Sprite stage2Sprite;
     public Sprite stage1Sprite;
 
+    [Header("Upgrade Stats")]
+    public float baseMaxDopamine = 100f;
+    private float permanentMaxDopamineBonus = 0f;
+
     private float currentDopamine;
     private bool isPlayingOnPhone = false;
 
@@ -49,6 +53,9 @@ public class DopamineManager : MonoBehaviour
 
     void Start()
     {
+        baseMaxDopamine = maxDopamine;
+        maxDopamine = baseMaxDopamine + permanentMaxDopamineBonus;
+
         currentDopamine = Mathf.Clamp(startDopamine, 0f, maxDopamine);
         phoneGameMultiplier = 1f;
         UpdateUI();
@@ -60,7 +67,7 @@ public class DopamineManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        float normalized = currentDopamine / maxDopamine;
+        float normalized = maxDopamine > 0f ? currentDopamine / maxDopamine : 0f;
         float dynamicDecay = Mathf.Lerp(decayPerSecond * 0.3f, decayPerSecond, normalized);
         currentDopamine -= dynamicDecay * dt;
 
@@ -75,7 +82,7 @@ public class DopamineManager : MonoBehaviour
 
     void UpdateUI()
     {
-        float normalized = currentDopamine / maxDopamine;
+        float normalized = maxDopamine > 0f ? currentDopamine / maxDopamine : 0f;
 
         if (barSlider != null)
             barSlider.value = normalized;
@@ -139,7 +146,17 @@ public class DopamineManager : MonoBehaviour
 
     public float GetSpeedMultiplier()
     {
-        float t = currentDopamine / maxDopamine;
+        float t = maxDopamine > 0f ? currentDopamine / maxDopamine : 0f;
         return Mathf.Lerp(0.6f, 1.5f, t);
+    }
+
+    public void AddMaxDopamineUpgrade(float amount)
+    {
+        permanentMaxDopamineBonus += amount;
+        maxDopamine = baseMaxDopamine + permanentMaxDopamineBonus;
+        currentDopamine = Mathf.Clamp(currentDopamine, 0f, maxDopamine);
+
+        UpdateUI();
+        Debug.Log("[Dopamine] Max dopamine upgraded. New max = " + maxDopamine);
     }
 }

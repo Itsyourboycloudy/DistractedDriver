@@ -51,12 +51,14 @@ public class ShopManager : MonoBehaviour
             if (rolledUpgrade != null)
             {
                 slots[i].SetUpgrade(rolledUpgrade);
-                usedUpgrades.Add(rolledUpgrade);
+
+                if (!rolledUpgrade.allowDuplicateInShop)
+                    usedUpgrades.Add(rolledUpgrade);
             }
             else
             {
                 slots[i].ClearSlot();
-                Debug.LogWarning("Could not find a unique upgrade for slot " + i);
+                Debug.LogWarning("Could not find a valid upgrade for slot " + i);
             }
         }
 
@@ -68,15 +70,16 @@ public class ShopManager : MonoBehaviour
     {
         if (upgrade == null) return;
 
-        if (!purchasedUpgrades.Contains(upgrade))
-            purchasedUpgrades.Add(upgrade);
+        if (!upgrade.canBuyMultiple && purchasedUpgrades.Contains(upgrade))
+        {
+            Debug.Log("Already owned: " + upgrade.upgradeName);
+            return;
+        }
+
+        purchasedUpgrades.Add(upgrade);
+        ApplyUpgradeEffect(upgrade);
 
         Debug.Log("Purchased upgrade: " + upgrade.upgradeName);
-
-        // Later:
-        // unlock minigame
-        // apply stat bonus
-        // save bought upgrades
     }
 
     ShopUpgradeData RollUniqueUpgrade(List<ShopUpgradeData> usedUpgrades)
@@ -94,7 +97,7 @@ public class ShopManager : MonoBehaviour
             if (candidate == null)
                 continue;
 
-            if (usedUpgrades.Contains(candidate))
+            if (!candidate.allowDuplicateInShop && usedUpgrades.Contains(candidate))
                 continue;
 
             return candidate;
@@ -105,7 +108,7 @@ public class ShopManager : MonoBehaviour
         foreach (ShopUpgradeData candidate in allUpgrades)
         {
             if (candidate == null) continue;
-            if (usedUpgrades.Contains(candidate)) continue;
+            if (!candidate.allowDuplicateInShop && usedUpgrades.Contains(candidate)) continue;
 
             return candidate;
         }
@@ -113,9 +116,59 @@ public class ShopManager : MonoBehaviour
         return null;
     }
 
+    void ApplyUpgradeEffect(ShopUpgradeData upgrade)
+    {
+        if (upgrade == null) return;
+
+        switch (upgrade.upgradeType)
+        {
+            case ShopUpgradeType.None:
+                break;
+
+            case ShopUpgradeType.CarSpeed:
+                if (CarController.Instance != null)
+                    CarController.Instance.AddSpeedUpgrade(upgrade.value);
+                break;
+
+            case ShopUpgradeType.DopamineMax:
+                if (DopamineManager.Instance != null)
+                    DopamineManager.Instance.AddMaxDopamineUpgrade(upgrade.value);
+                break;
+
+            case ShopUpgradeType.RideFareMultiplier:
+                if (TaxiRideManager.Instance != null)
+                    TaxiRideManager.Instance.AddFareMultiplier(upgrade.value);
+                break;
+
+            case ShopUpgradeType.SurgePricing:
+                if (TaxiRideManager.Instance != null)
+                    TaxiRideManager.Instance.AddTemporaryFareMultiplier(upgrade.value, upgrade.durationDays);
+                break;
+
+            case ShopUpgradeType.TimeStopUnlock:
+                if (PlayerUpgradeState.Instance != null)
+                    PlayerUpgradeState.Instance.hasTimeStop = true;
+                break;
+
+            case ShopUpgradeType.RemoveMinigame:
+                if (PlayerUpgradeState.Instance != null)
+                    PlayerUpgradeState.Instance.removeMinigameCharges++;
+                break;
+
+            case ShopUpgradeType.Joker:
+                if (PlayerUpgradeState.Instance != null)
+                    PlayerUpgradeState.Instance.TriggerJokerCopy();
+                break;
+        }
+    }
+
     UpgradeRarity RollRarity()
     {
-        float roll = Random.Range(0f, 100f);
+        float total = commonChance + uncommonChance + rareChance + epicChance + legendaryChance;
+        if (total <= 0f)
+            return UpgradeRarity.Common;
+
+        float roll = Random.Range(0f, total);
 
         if (roll < legendaryChance)
             return UpgradeRarity.Legendary;
