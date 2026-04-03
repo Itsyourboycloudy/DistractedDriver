@@ -27,10 +27,6 @@ public class FlyMusicManager : MonoBehaviour
         Instance = this;
     }
 
-    private void Start()
-    {
-        PlayFly1();
-    }
 
     public void PlayFly1()
     {

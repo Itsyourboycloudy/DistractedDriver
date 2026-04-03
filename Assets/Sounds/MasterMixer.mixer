@@ -105,6 +105,7 @@ AudioMixerSnapshotController:
     70f1e9244327aff4cb1103a916964f3f: -80
     2c016d652786c9440abc85f67af51c1c: -80
     3fde81b915b87134badc5d0a6238f30f: -80
+    825dbed97d3465144945f69ac035ad75: -80
     9bd1862c37911be4cbb71fd64971985d: -80
     527563ed4841ed84192487de2e3dcb9f: -80
   m_TransitionOverrides: {}
@@ -155,6 +156,25 @@ AudioMixerEffectController:
   m_SendTarget: {fileID: 0}
   m_EnableWetMix: 0
   m_Bypass: 0
+--- !u!243 &-893294977094065928
+AudioMixerGroupController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: TimeStopSFX
+  m_AudioMixer: {fileID: 24100000}
+  m_GroupID: 3b817743bf733984c963b82521b855b8
+  m_Children: []
+  m_Volume: fac40f9d7a9fd654697a7b0f46df3423
+  m_Pitch: 5186a1d693f334f4c9560690f8e2fe6c
+  m_Send: 00000000000000000000000000000000
+  m_Effects:
+  - {fileID: 5175549217804849409}
+  m_UserColorIndex: 0
+  m_Mute: 0
+  m_Solo: 0
+  m_BypassEffects: 0
 --- !u!241 &24100000
 AudioMixerController:
   m_ObjectHideFlags: 0
@@ -182,6 +202,8 @@ AudioMixerController:
     - 2bf69b224da90b0498bcd3642342420e
     - 3e66adc8eb2801e448c5f75974448e19
     - 8108aa2e22927314f91c9ac6fdfc5f41
+    - f1b5cabb938deaa449853b18077235a7
+    - 3b817743bf733984c963b82521b855b8
     name: View
   m_CurrentViewIndex: 0
   m_TargetSnapshot: {fileID: 24500006}
@@ -202,6 +224,8 @@ AudioMixerGroupController:
   - {fileID: -8998405220612148245}
   - {fileID: 8328528944012191444}
   - {fileID: 5293771870198224338}
+  - {fileID: 5781154474555155862}
+  - {fileID: -893294977094065928}
   m_Volume: 843e126bad133084ba102caf49d60bd7
   m_Pitch: 6013b4b6707985348ad3a16ee159ddac
   m_Send: 00000000000000000000000000000000
@@ -238,8 +262,9 @@ AudioMixerSnapshotController:
     611395a0b866825479f83d45e9ae7f88: -9
     9ef5a41427b3f7c47a5bf98eacaa5e5d: -0.04203608
     70f1e9244327aff4cb1103a916964f3f: -20
-    2c016d652786c9440abc85f67af51c1c: -9.8
-    3fde81b915b87134badc5d0a6238f30f: -9.8
+    2c016d652786c9440abc85f67af51c1c: -23.386131
+    3fde81b915b87134badc5d0a6238f30f: -16.202076
+    825dbed97d3465144945f69ac035ad75: -15.218634
     9bd1862c37911be4cbb71fd64971985d: -13.253121
     527563ed4841ed84192487de2e3dcb9f: -3.7328372
   m_TransitionOverrides: {}
@@ -285,6 +310,20 @@ AudioMixerEffectController:
   m_SendTarget: {fileID: 0}
   m_EnableWetMix: 0
   m_Bypass: 0
+--- !u!244 &5175549217804849409
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: f2e45f3bab428e54c82b38da3092646c
+  m_EffectName: Attenuation
+  m_MixLevel: b0e55c4e408947543a06ad910c7ae192
+  m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &5293771870198224338
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -304,13 +343,46 @@ AudioMixerGroupController:
   m_Mute: 0
   m_Solo: 0
   m_BypassEffects: 0
+--- !u!243 &5781154474555155862
+AudioMixerGroupController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: FlyFlap
+  m_AudioMixer: {fileID: 24100000}
+  m_GroupID: f1b5cabb938deaa449853b18077235a7
+  m_Children: []
+  m_Volume: 825dbed97d3465144945f69ac035ad75
+  m_Pitch: 0c384bab45a0d6b4c827230b8baed5b4
+  m_Send: 00000000000000000000000000000000
+  m_Effects:
+  - {fileID: 6831172361940985614}
+  m_UserColorIndex: 0
+  m_Mute: 0
+  m_Solo: 0
+  m_BypassEffects: 0
+--- !u!244 &6831172361940985614
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 5bd481ba84dfd674c936e03c3336d191
+  m_EffectName: Attenuation
+  m_MixLevel: 71c3f5456ba190c45b17f42283743db3
+  m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &8328528944012191444
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Timestop
+  m_Name: TimestopMusic
   m_AudioMixer: {fileID: 24100000}
   m_GroupID: 2bf69b224da90b0498bcd3642342420e
   m_Children: []

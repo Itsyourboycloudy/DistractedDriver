@@ -324,6 +324,8 @@ MonoBehaviour:
   passiveSprite: {fileID: -1053762926, guid: 72223f5d5b7627c499dfe2e34574c061, type: 3}
   flyingSprite: {fileID: 300005991, guid: 72223f5d5b7627c499dfe2e34574c061, type: 3}
   hitSprite: {fileID: 21300000, guid: c458d2866e80cef4b9cc35f559851f9d, type: 3}
+  flapAudioSource: {fileID: 5717369519996404998}
+  flapClip: {fileID: 8300000, guid: fcb5b7b14e16ed34f8f79f3a20edd76c, type: 3}
   flapVelocity: 50
   gravity: 80
   maxFallSpeed: 80
@@ -1252,6 +1254,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2600864305411416969}
   - component: {fileID: 2954096109035938851}
+  - component: {fileID: 5717369519996404998}
   m_Layer: 5
   m_Name: Minigame_FlyFlappy
   m_TagString: Untagged
@@ -1303,6 +1306,103 @@ MonoBehaviour:
   spawner: {fileID: 7212570298980174238}
   mainMenuPanel: {fileID: 2299764866394162663}
   startPromptPanel: {fileID: 7071747544700814778}
+--- !u!82 &5717369519996404998
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6269946130172258068}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 5781154474555155862, guid: 06d2fbd4cff7d494f9483038a7228100, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 0
+  MinDistance: 495.0495
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 1
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &6885757511876643119
 GameObject:
   m_ObjectHideFlags: 0

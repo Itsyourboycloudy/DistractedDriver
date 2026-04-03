@@ -8,6 +8,10 @@ public class FlyFlapUI : MonoBehaviour
     public Sprite flyingSprite;
     public Sprite hitSprite;
 
+    [Header("Audio")]
+    public AudioSource flapAudioSource;
+    public AudioClip flapClip;
+
     [Header("Movement (UI space)")]
     public float flapVelocity = 420f;
     public float gravity = 1200f;
@@ -53,7 +57,6 @@ public class FlyFlapUI : MonoBehaviour
 
         velY -= gravity * Time.deltaTime;
         velY = Mathf.Max(velY, -maxFallSpeed);
-
         rt.anchoredPosition += new Vector2(0f, velY * Time.deltaTime);
 
         if (flyTimer > 0f)
@@ -120,7 +123,10 @@ public class FlyFlapUI : MonoBehaviour
             img.sprite = flyingSprite;
 
         flyTimer = flyingSpriteTime;
+
+        PlayFlapSound();
     }
+
     public void ForceFlap()
     {
         if (dead) return;
@@ -131,7 +137,20 @@ public class FlyFlapUI : MonoBehaviour
             img.sprite = flyingSprite;
 
         flyTimer = flyingSpriteTime;
+
+        PlayFlapSound();
     }
+
+    void PlayFlapSound()
+    {
+        if (flapAudioSource != null && flapClip != null)
+        {
+            flapAudioSource.pitch = Random.Range(0.96f, 1.04f);
+            flapAudioSource.PlayOneShot(flapClip);
+            flapAudioSource.pitch = 1f;
+        }
+    }
+
     public void Hit()
     {
         Debug.Log("[Fly] Hit() called");
