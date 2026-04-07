@@ -9,7 +9,7 @@ public class DayNightCycle : MonoBehaviour
     public static DayNightCycle Instance { get; private set; }
 
     [Header("Day Length")]
-    public float dayLengthSeconds = 960f; // 16 minutes
+    public float dayLengthSeconds = 300f; // 5 minutes
 
     [Header("Sun Orbit")]
     public Transform sunPivot;
@@ -42,6 +42,7 @@ public class DayNightCycle : MonoBehaviour
     private float fadeTimer = 0f;
     private bool endingSequenceStarted = false;
     private bool timeStopPaused = false;
+    private bool resolvedAfterFade = false;
 
     public float DayProgress01 => Mathf.Clamp01(dayTimer / dayLengthSeconds);
     public bool DayEnded => dayEnded;
@@ -103,6 +104,14 @@ public class DayNightCycle : MonoBehaviour
             {
                 isFading = false;
                 Debug.Log("[DayNight] Fade complete.");
+
+                if (!resolvedAfterFade)
+                {
+                    resolvedAfterFade = true;
+
+                    if (DayEndManager.Instance != null)
+                        DayEndManager.Instance.ResolveDayEnd();
+                }
             }
         }
     }
@@ -188,6 +197,7 @@ public class DayNightCycle : MonoBehaviour
         fadeTimer = 0f;
         endingSequenceStarted = false;
         timeStopPaused = false;
+        resolvedAfterFade = false;
 
         currentDay++;
 

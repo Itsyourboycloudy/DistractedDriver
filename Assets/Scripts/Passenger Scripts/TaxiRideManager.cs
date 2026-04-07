@@ -108,7 +108,7 @@ public class TaxiRideManager : MonoBehaviour
         for (int i = 0; i < dropoffs.Length; i++)
         {
             if (dropoffs[i] != null)
-                dropoffs[i].gameObject.SetActive(false);
+                dropoffs[i].SetActive(false);
         }
 
         for (int i = 0; i < offers.Length; i++)
@@ -181,6 +181,12 @@ public class TaxiRideManager : MonoBehaviour
                 pickupZones[i].SetActive(false);
         }
 
+        for (int i = 0; i < dropoffs.Length; i++)
+        {
+            if (dropoffs[i] != null)
+                dropoffs[i].SetActive(false);
+        }
+
         currentPickupZone.rideManager = this;
         currentPickupZone.SetActive(true);
 
@@ -224,7 +230,8 @@ public class TaxiRideManager : MonoBehaviour
         DropoffZone currentDropoff = dropoffs[currentDropoffIndex];
         if (currentDropoff == null) return;
 
-        currentDropoff.gameObject.SetActive(true);
+        currentDropoff.rideManager = this;
+        currentDropoff.SetActive(true);
 
         string msg = $"Taking {currentPassenger.passengerName} to {currentDropoff.dropoffName}";
         currentRideMsg = msg;
@@ -248,6 +255,7 @@ public class TaxiRideManager : MonoBehaviour
         if (zone != currentDropoff)
             return;
 
+        zone.SetActive(false);
         state = RideState.Idle;
 
         PassengerPickup currentPassenger =
@@ -256,8 +264,17 @@ public class TaxiRideManager : MonoBehaviour
             : null;
 
         string passengerName = currentPassenger != null ? currentPassenger.passengerName : "Passenger";
-        string msg = $"Ride complete! {passengerName} is at {currentDropoff.dropoffName}.";
 
+        float earnedFare = 0f;
+        if (MoneyManager.Instance != null)
+        {
+            float originalMultiplier = MoneyManager.Instance.fareMultiplier;
+            MoneyManager.Instance.SetFareMultiplier(GetCurrentFareMultiplier());
+            earnedFare = MoneyManager.Instance.AddRideFare();
+            MoneyManager.Instance.SetFareMultiplier(originalMultiplier);
+        }
+
+        string msg = $"Ride complete! {passengerName} is at {currentDropoff.dropoffName}. +${earnedFare:0.00}";
         currentRideMsg = msg;
         currentGpsTarget = null;
         PushTaxiUI();
@@ -266,6 +283,7 @@ public class TaxiRideManager : MonoBehaviour
             GameManager.Instance.AddRideScore();
 
         Debug.Log("[TaxiRideManager] Current fare multiplier = " + GetCurrentFareMultiplier());
+        Debug.Log("[TaxiRideManager] Earned fare = $" + earnedFare.ToString("0.00"));
 
         if (nextRideRoutine != null)
             StopCoroutine(nextRideRoutine);

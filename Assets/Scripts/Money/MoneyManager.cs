@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class MoneyManager : MonoBehaviour
@@ -24,6 +25,8 @@ public class MoneyManager : MonoBehaviour
     public int currentDay;
     public float currentCash;
     public float currentDebtGoal;
+
+    public event Action<float> OnCashAdded;
 
     private void Awake()
     {
@@ -68,7 +71,7 @@ public class MoneyManager : MonoBehaviour
     public float GetRandomRideFare()
     {
         float baseFare = GetBaseFareForDay(currentDay);
-        float randomBonus = Random.Range(0f, fareRandomBonusMax);
+        float randomBonus = UnityEngine.Random.Range(0f, fareRandomBonusMax);
         float fare = (baseFare + randomBonus) * fareMultiplier;
         return RoundMoney(fare);
     }
@@ -83,7 +86,11 @@ public class MoneyManager : MonoBehaviour
 
     public void AddCash(float amount)
     {
+        amount = RoundMoney(amount);
         currentCash = RoundMoney(currentCash + amount);
+
+        if (amount > 0f)
+            OnCashAdded?.Invoke(amount);
     }
 
     public bool SpendCash(float amount)

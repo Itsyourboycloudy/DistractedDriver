@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.VFX;
 using TMPro;
 using UnityEngine.SceneManagement;
@@ -8,12 +7,9 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    [Header("Timer")]
-    public float startTimeSeconds = 300f;
+    [Header("Day Timer Display")]
     public TMP_Text timerText;
 
-    private float timeRemaining;
-    private bool timerRunning = true;
     private bool timeStopPaused = false;
 
     [Header("Score")]
@@ -24,10 +20,6 @@ public class GameManager : MonoBehaviour
     [Header("Ride Stats")]
     public int ridesCompleted = 0;
 
-    [Header("End Screen")]
-    public GameObject endScreenPanel;
-    public TMP_Text finalScoreText;
-
     [Header("Saving")]
     public SaveJSONData saveSystem;
 
@@ -37,7 +29,11 @@ public class GameManager : MonoBehaviour
     private Vector3 lastPosition;
     public float averageSpeed = 0f;
 
-    [Header("Win VFX")]
+    [Header("Optional End Screen (leave assigned only if you still want to use it later)")]
+    public GameObject endScreenPanel;
+    public TMP_Text finalScoreText;
+
+    [Header("Optional Win VFX")]
     public VisualEffect confettiVFX;
     public float confettiPlaySeconds = 2f;
 
@@ -54,7 +50,6 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        timeRemaining = startTimeSeconds;
         UpdateTimerUI();
         UpdateScoreUI();
 
@@ -69,23 +64,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        // Timer only stops during time stop
-        if (timerRunning && !timeStopPaused)
-        {
-            timeRemaining -= Time.deltaTime;
-
-            if (timeRemaining <= 0f)
-            {
-                timeRemaining = 0f;
-                timerRunning = false;
-                UpdateTimerUI();
-                OnTimeUp();
-            }
-            else
-            {
-                UpdateTimerUI();
-            }
-        }
+        UpdateTimerUI();
 
         // keep tracking car movement even during time stop
         if (player != null)
@@ -99,6 +78,9 @@ public class GameManager : MonoBehaviour
     private void UpdateTimerUI()
     {
         if (timerText == null) return;
+        if (DayNightCycle.Instance == null) return;
+
+        float timeRemaining = GetDayTimeRemaining();
 
         int minutes = Mathf.FloorToInt(timeRemaining / 60f);
         int seconds = Mathf.FloorToInt(timeRemaining % 60f);
@@ -129,17 +111,48 @@ public class GameManager : MonoBehaviour
         timeStopPaused = paused;
     }
 
-    private void OnTimeUp()
+    public float GetDayTimeRemaining()
     {
-        Debug.Log("Time’s up!");
+        if (DayNightCycle.Instance == null)
+            return 0f;
 
+        float totalDayLength = DayNightCycle.Instance.dayLengthSeconds;
+        float progress01 = DayNightCycle.Instance.DayProgress01;
+        float remaining = totalDayLength * (1f - progress01);
+
+        return Mathf.Max(0f, remaining);
+    }
+
+    public float GetTimePlayed()
+    {
+        if (DayNightCycle.Instance == null)
+            return 0f;
+
+        float totalDayLength = DayNightCycle.Instance.dayLengthSeconds;
+        return totalDayLength - GetDayTimeRemaining();
+    }
+
+    public void RefreshDrivingStats()
+    {
         float timePlayed = GetTimePlayed();
         averageSpeed = (timePlayed > 0f) ? (totalDistanceDriven / timePlayed) : 0f;
 
         Debug.Log($"Driving stats: distance={totalDistanceDriven:F1}m, avgSpeed={averageSpeed:F2} m/s");
+    }
 
-        if (saveSystem != null) saveSystem.SaveDataNow();
-        else Debug.LogWarning("GameManager: saveSystem is null, not saving.");
+    public void SaveRunDataNow()
+    {
+        RefreshDrivingStats();
+
+        if (saveSystem != null)
+            saveSystem.SaveDataNow();
+        else
+            Debug.LogWarning("GameManager: saveSystem is null, not saving.");
+    }
+
+    public void ShowLegacyEndScreenIfNeeded()
+    {
+        RefreshDrivingStats();
 
         if (endScreenPanel != null)
             endScreenPanel.SetActive(true);
@@ -149,20 +162,6 @@ public class GameManager : MonoBehaviour
 
         if (confettiVFX != null)
             confettiVFX.Play();
-
-        StartCoroutine(FreezeAfter(confettiPlaySeconds));
-    }
-
-    private IEnumerator FreezeAfter(float delay)
-    {
-        float t = 0f;
-        while (t < delay)
-        {
-            t += Time.unscaledDeltaTime;
-            yield return null;
-        }
-
-        Time.timeScale = 0f;
     }
 
     public void RestartGame()
@@ -178,13 +177,10 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
     }
 
-    public float GetTimePlayed()
-    {
-        return startTimeSeconds - timeRemaining;
-    }
-
     public TaxiGameData CreateSaveData()
     {
+        RefreshDrivingStats();
+
         return new TaxiGameData(
             score,
             ridesCompleted,
