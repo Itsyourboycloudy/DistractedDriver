@@ -12,6 +12,9 @@ public class ShopUpgradeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExit
     public Button upgradeButton;
     public GameObject boughtOverlay;
 
+    [Header("Optional Overlay Text")]
+    public TMP_Text overlayText; // put the text inside your overlay here if you have one
+
     [Header("Rarity Backgrounds")]
     public Texture commonBackground;
     public Texture uncommonBackground;
@@ -36,6 +39,12 @@ public class ShopUpgradeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExit
         }
     }
 
+    void Update()
+    {
+        // keeps duplicate slots updated after one copy gets bought
+        RefreshSlotState();
+    }
+
     public void SetUpgrade(ShopUpgradeData upgrade)
     {
         currentUpgrade = upgrade;
@@ -56,13 +65,8 @@ public class ShopUpgradeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExit
         if (backgroundImage != null)
             backgroundImage.texture = GetBackgroundForRarity(currentUpgrade.rarity);
 
-        if (upgradeButton != null)
-            upgradeButton.interactable = true;
-
-        if (boughtOverlay != null)
-            boughtOverlay.SetActive(false);
-
         CacheDescription();
+        RefreshSlotState();
     }
 
     public void ClearSlot()
@@ -85,6 +89,9 @@ public class ShopUpgradeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
         if (boughtOverlay != null)
             boughtOverlay.SetActive(false);
+
+        if (overlayText != null)
+            overlayText.text = "";
     }
 
     void CacheDescription()
@@ -109,12 +116,81 @@ public class ShopUpgradeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExit
         return commonBackground;
     }
 
+    bool IsOwnedInShopManager()
+    {
+        return currentUpgrade != null &&
+               ShopManager.Instance != null &&
+               !currentUpgrade.canBuyMultiple &&
+               ShopManager.Instance.purchasedUpgrades.Contains(currentUpgrade);
+    }
+
+    bool IsDuplicateBlocked()
+    {
+        // another copy is owned, but this exact slot was not the one purchased
+        return !purchased && IsOwnedInShopManager();
+    }
+
+    void RefreshSlotState()
+    {
+        if (currentUpgrade == null) return;
+
+        bool duplicateBlocked = IsDuplicateBlocked();
+
+        if (upgradeButton != null)
+            upgradeButton.interactable = !purchased && !duplicateBlocked;
+
+        if (boughtOverlay != null)
+            boughtOverlay.SetActive(purchased || duplicateBlocked);
+
+        if (overlayText != null)
+        {
+            if (purchased)
+                overlayText.text = "OWNED";
+            else if (duplicateBlocked)
+                overlayText.text = "NO DUPLICATES";
+            else
+                overlayText.text = "";
+        }
+    }
+
     void ShowHover()
     {
         if (ShopHoverUI.Instance == null) return;
-        if (string.IsNullOrWhiteSpace(cachedDescription)) return;
+        if (currentUpgrade == null) return;
 
-        ShopHoverUI.Instance.Show(cachedDescription);
+        bool alreadyOwned = IsOwnedInShopManager();
+        bool thisSlotPurchased = purchased;
+        bool duplicateBlocked = IsDuplicateBlocked();
+
+        int scaledPrice = currentUpgrade.basePrice;
+        if (MoneyManager.Instance != null)
+            scaledPrice = MoneyManager.Instance.GetScaledUpgradePrice(currentUpgrade.basePrice);
+
+        bool canAfford = MoneyManager.Instance != null && MoneyManager.Instance.currentCash >= scaledPrice;
+
+        string costLine = "";
+
+        if (thisSlotPurchased)
+        {
+            costLine = "<color=#9A9A9A>OWNED</color>";
+        }
+        else if (duplicateBlocked)
+        {
+            costLine = "<color=#9A9A9A>NO DUPLICATES</color>";
+        }
+        else
+        {
+            string labelColor = "#FFD54A";
+            string valueColor = canAfford ? "#00FF66" : "#FF3B30";
+
+            costLine = "<color=" + labelColor + ">COST:</color> " +
+                       "<color=" + valueColor + ">$" + scaledPrice + "</color>";
+
+            if (!currentUpgrade.canBuyMultiple && !alreadyOwned)
+                costLine += "   <color=#9A9A9A>NO DUPLICATES</color>";
+        }
+
+        ShopHoverUI.Instance.Show(cachedDescription, costLine);
     }
 
     void HideHover()
@@ -146,16 +222,16 @@ public class ShopUpgradeSlot : MonoBehaviour, IPointerEnterHandler, IPointerExit
     public void BuyUpgrade()
     {
         if (currentUpgrade == null || purchased) return;
-
-        purchased = true;
+        if (IsDuplicateBlocked()) return;
 
         if (ShopManager.Instance != null)
-            ShopManager.Instance.PurchaseUpgrade(currentUpgrade);
+        {
+            bool bought = ShopManager.Instance.PurchaseUpgrade(currentUpgrade);
+            if (!bought) return;
+        }
 
-        if (upgradeButton != null)
-            upgradeButton.interactable = false;
-
-        if (boughtOverlay != null)
-            boughtOverlay.SetActive(true);
+        purchased = true;
+        RefreshSlotState();
+        ShowHover();
     }
 }

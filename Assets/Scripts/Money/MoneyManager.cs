@@ -7,15 +7,15 @@ public class MoneyManager : MonoBehaviour
 
     [Header("Starting Values")]
     public int startingDay = 1;
-    public float startingCash = 0f;
+    public int startingCash = 0;
 
     [Header("Debt Scaling")]
-    public float day1Debt = 18f;
+    public int day1Debt = 18;
     public float debtGrowthMultiplier = 1.22f;
 
     [Header("Fare Scaling")]
-    public float baseFareDay1 = 2.25f;
-    public float fareRandomBonusMax = 0.75f;
+    public int baseFareDay1 = 2;
+    public int fareRandomBonusMax = 1;
     public float fareIncreasePerDay = 0.35f;
 
     [Header("Money Multipliers")]
@@ -23,10 +23,11 @@ public class MoneyManager : MonoBehaviour
 
     [Header("Runtime")]
     public int currentDay;
-    public float currentCash;
-    public float currentDebtGoal;
+    public int currentCash;
+    public int currentDebtGoal;
 
-    public event Action<float> OnCashAdded;
+    public event Action<int> OnCashAdded;
+    public event Action<int> OnCashChanged;
 
     private void Awake()
     {
@@ -44,6 +45,8 @@ public class MoneyManager : MonoBehaviour
         currentDay = startingDay;
         currentCash = startingCash;
         currentDebtGoal = GetDebtForDay(currentDay);
+
+        OnCashChanged?.Invoke(currentCash);
     }
 
     public void StartNextDay()
@@ -58,49 +61,54 @@ public class MoneyManager : MonoBehaviour
         currentDebtGoal = GetDebtForDay(currentDay);
     }
 
-    public float GetDebtForDay(int day)
+    public int GetDebtForDay(int day)
     {
-        return Mathf.Round(day1Debt * Mathf.Pow(debtGrowthMultiplier, day - 1));
+        return Mathf.RoundToInt(day1Debt * Mathf.Pow(debtGrowthMultiplier, day - 1));
     }
 
-    public float GetBaseFareForDay(int day)
+    public int GetBaseFareForDay(int day)
     {
-        return baseFareDay1 + ((day - 1) * fareIncreasePerDay);
+        float fare = baseFareDay1 + ((day - 1) * fareIncreasePerDay);
+        return Mathf.RoundToInt(fare);
     }
 
-    public float GetRandomRideFare()
+    public int GetRandomRideFare()
     {
         float baseFare = GetBaseFareForDay(currentDay);
-        float randomBonus = UnityEngine.Random.Range(0f, fareRandomBonusMax);
+
+        // Random.Range int version is min inclusive, max exclusive,
+        // so +1 makes the max actually reachable.
+        int randomBonus = UnityEngine.Random.Range(0, fareRandomBonusMax + 1);
+
         float fare = (baseFare + randomBonus) * fareMultiplier;
-        return RoundMoney(fare);
+        return Mathf.RoundToInt(fare);
     }
 
-    public float AddRideFare()
+    public int AddRideFare()
     {
-        float fare = GetRandomRideFare();
+        int fare = GetRandomRideFare();
         AddCash(fare);
-        Debug.Log("[Money] Ride earned: $" + fare.ToString("0.00") + " | Cash now: $" + currentCash.ToString("0.00"));
+        Debug.Log("[Money] Ride earned: $" + fare + " | Cash now: $" + currentCash);
         return fare;
     }
 
-    public void AddCash(float amount)
+    public void AddCash(int amount)
     {
-        amount = RoundMoney(amount);
-        currentCash = RoundMoney(currentCash + amount);
+        currentCash += amount;
 
-        if (amount > 0f)
+        if (amount > 0)
             OnCashAdded?.Invoke(amount);
+
+        OnCashChanged?.Invoke(currentCash);
     }
 
-    public bool SpendCash(float amount)
+    public bool SpendCash(int amount)
     {
-        amount = RoundMoney(amount);
-
         if (currentCash < amount)
             return false;
 
-        currentCash = RoundMoney(currentCash - amount);
+        currentCash -= amount;
+        OnCashChanged?.Invoke(currentCash);
         return true;
     }
 
@@ -113,12 +121,14 @@ public class MoneyManager : MonoBehaviour
     {
         if (currentCash < currentDebtGoal)
         {
-            Debug.Log("[Money] Not enough cash to pay debt. Need $" + currentDebtGoal.ToString("0.00") + ", have $" + currentCash.ToString("0.00"));
+            Debug.Log("[Money] Not enough cash to pay debt. Need $" + currentDebtGoal + ", have $" + currentCash);
             return false;
         }
 
-        currentCash = RoundMoney(currentCash - currentDebtGoal);
-        Debug.Log("[Money] Paid debt: $" + currentDebtGoal.ToString("0.00") + " | Remaining cash: $" + currentCash.ToString("0.00"));
+        currentCash -= currentDebtGoal;
+        OnCashChanged?.Invoke(currentCash);
+
+        Debug.Log("[Money] Paid debt: $" + currentDebtGoal + " | Remaining cash: $" + currentCash);
         return true;
     }
 
@@ -143,10 +153,5 @@ public class MoneyManager : MonoBehaviour
     {
         fareMultiplier = Mathf.Max(0.1f, amount);
         Debug.Log("[Money] Fare multiplier set to: " + fareMultiplier.ToString("0.00") + "x");
-    }
-
-    public static float RoundMoney(float value)
-    {
-        return Mathf.Round(value * 100f) / 100f;
     }
 }

@@ -6,39 +6,41 @@ public class TimeStopManager : MonoBehaviour
 {
     public static TimeStopManager Instance { get; private set; }
 
-    [Header("Use")]
-    public KeyCode activateKey = KeyCode.E;
-    public float stopDuration = 10f;
+    [Header("Unlock / Uses")]
+    public PlayerUpgradeState playerUpgradeState;
+    public bool requireUpgrade = true;
     public bool oneUsePerDay = true;
+    public bool usedThisDay = false;
 
-    [Header("Visual Effect")]
-    public GameObject blackWhiteEffectObject;
-    public TimeStopBubbleOverlay bubbleOverlay;
+    [Header("Input")]
+    public KeyCode activateKey = KeyCode.E;
+
+    [Header("Duration")]
+    public float stopDuration = 10f;
+
+    [Header("References")]
+    public DayNightCycle dayNightCycle;
+    public Transform playerCar;
+    public TimeStopShockwave shockwavePrefab;
+    public TimeStopVisualController visualController;
 
     [Header("Audio")]
-    public AudioSource activationSfxSource;
+    public AudioSource oneShotSource;
+    public AudioSource loopSource;
     public AudioClip activationClip;
+    public AudioClip stoppedLoopClip;
 
-    public AudioSource timeStopMusicSource;
-    public AudioClip timeStopLoopClip;
-
-    [Tooltip("Normal gameplay snapshot")]
+    [Header("Optional Snapshot")]
     public AudioMixerSnapshot normalSnapshot;
-
-    [Tooltip("Snapshot where almost everything is muted except timestop music")]
     public AudioMixerSnapshot timeStopSnapshot;
-
-    [Header("Audio Timing")]
-    public float snapshotDelayAfterActivation = 0.08f;
-    public float musicStartDelay = 0.10f;
+    public float snapshotTransition = 0.08f;
 
     [Header("State")]
     public bool isTimeStopped = false;
-    public bool canUseTimeStop = true;
 
     private Coroutine stopRoutine;
 
-    void Awake()
+    private void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -49,110 +51,85 @@ public class TimeStopManager : MonoBehaviour
         Instance = this;
     }
 
-    void Update()
+    private void Update()
     {
         if (Input.GetKeyDown(activateKey))
-            TryActivateTimeStop();
+            TryActivate();
     }
 
-    public void TryActivateTimeStop()
+    public void TryActivate()
     {
-        if (isTimeStopped) return;
-        if (oneUsePerDay && !canUseTimeStop) return;
+        if (isTimeStopped)
+            return;
 
-        if (PlayerUpgradeState.Instance == null) return;
-        if (!PlayerUpgradeState.Instance.hasTimeStop) return;
+        if (oneUsePerDay && usedThisDay)
+            return;
 
-        if (stopRoutine != null)
-            StopCoroutine(stopRoutine);
+        if (requireUpgrade && playerUpgradeState != null && !playerUpgradeState.hasTimeStop)
+            return;
 
         stopRoutine = StartCoroutine(TimeStopRoutine());
     }
 
-    IEnumerator TimeStopRoutine()
+    private IEnumerator TimeStopRoutine()
     {
         isTimeStopped = true;
+        usedThisDay = true;
 
-        if (oneUsePerDay)
-            canUseTimeStop = false;
+        Debug.Log("[TimeStop] ACTIVATED");
 
-        Debug.Log("[TimeStop] TIME STOP STARTED");
+        if (dayNightCycle != null)
+            dayNightCycle.SetTimeStopPaused(true);
 
-        // bubble expands out from player
-        if (bubbleOverlay != null)
-            bubbleOverlay.PlayExpand();
-
-        // black/white stays on during the stop
-        if (blackWhiteEffectObject != null)
-            blackWhiteEffectObject.SetActive(true);
-
-        // play activation sound once
-        if (activationSfxSource != null && activationClip != null)
-            activationSfxSource.PlayOneShot(activationClip);
-
-        // let activation sound breathe first
-        if (snapshotDelayAfterActivation > 0f)
-            yield return new WaitForSecondsRealtime(snapshotDelayAfterActivation);
-
-        // swap mixer
         if (timeStopSnapshot != null)
-            timeStopSnapshot.TransitionTo(0.03f);
+            timeStopSnapshot.TransitionTo(snapshotTransition);
 
-        // small delay before song
-        if (musicStartDelay > 0f)
-            yield return new WaitForSecondsRealtime(musicStartDelay);
+        if (oneShotSource != null && activationClip != null)
+            oneShotSource.PlayOneShot(activationClip);
 
-        // play looping song
-        if (timeStopMusicSource != null && timeStopLoopClip != null)
+        if (visualController != null)
+            visualController.BeginTimeStop();
+
+        if (shockwavePrefab != null && playerCar != null)
         {
-            timeStopMusicSource.Stop();
-            timeStopMusicSource.clip = timeStopLoopClip;
-            timeStopMusicSource.loop = true;
-            timeStopMusicSource.Play();
+            TimeStopShockwave wave = Instantiate(
+                shockwavePrefab,
+                playerCar.position,
+                Quaternion.identity
+            );
+
+            wave.Play();
         }
 
-        PauseSystems(true);
-
-        float timer = 0f;
-        while (timer < stopDuration)
+        if (loopSource != null && stoppedLoopClip != null)
         {
-            timer += Time.unscaledDeltaTime;
-            yield return null;
+            loopSource.clip = stoppedLoopClip;
+            loopSource.loop = true;
+            loopSource.Play();
         }
 
-        PauseSystems(false);
+        yield return new WaitForSeconds(stopDuration);
 
-        // stop song when time stop ends
-        if (timeStopMusicSource != null)
-            timeStopMusicSource.Stop();
+        if (loopSource != null)
+            loopSource.Stop();
+
+        if (visualController != null)
+            visualController.EndTimeStop();
 
         if (normalSnapshot != null)
-            normalSnapshot.TransitionTo(0.08f);
+            normalSnapshot.TransitionTo(snapshotTransition);
 
-        // bubble collapses back
-        if (bubbleOverlay != null)
-            bubbleOverlay.PlayCollapse();
-
-        if (blackWhiteEffectObject != null)
-            blackWhiteEffectObject.SetActive(false);
+        if (dayNightCycle != null)
+            dayNightCycle.SetTimeStopPaused(false);
 
         isTimeStopped = false;
         stopRoutine = null;
 
-        Debug.Log("[TimeStop] TIME STOP ENDED");
+        Debug.Log("[TimeStop] ENDED");
     }
 
-    void PauseSystems(bool paused)
+    public void ResetForNewDay()
     {
-        if (GameManager.Instance != null)
-            GameManager.Instance.SetTimeStopPaused(paused);
-
-        if (DayNightCycle.Instance != null)
-            DayNightCycle.Instance.SetTimeStopPaused(paused);
-    }
-
-    public void ResetTimeStopUse()
-    {
-        canUseTimeStop = true;
+        usedThisDay = false;
     }
 }

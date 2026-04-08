@@ -45,25 +45,40 @@ public class HUDCashUI : MonoBehaviour
         }
 
         if (MoneyManager.Instance != null)
+        {
             MoneyManager.Instance.OnCashAdded += HandleCashAdded;
+            MoneyManager.Instance.OnCashChanged += HandleCashChanged;
+        }
+
+        RefreshCashText();
     }
 
     private void OnDestroy()
     {
         if (MoneyManager.Instance != null)
+        {
             MoneyManager.Instance.OnCashAdded -= HandleCashAdded;
+            MoneyManager.Instance.OnCashChanged -= HandleCashChanged;
+        }
     }
 
-    private void Update()
+    private void RefreshCashText()
     {
         if (MoneyManager.Instance == null || cashText == null)
             return;
 
-        cashText.text = "CASH $" + MoneyManager.Instance.currentCash.ToString("0.00");
+        cashText.text = "CASH $" + MoneyManager.Instance.currentCash.ToString("N0");
     }
 
-    private void HandleCashAdded(float amountAdded)
+    private void HandleCashChanged(int newCash)
     {
+        RefreshCashText();
+    }
+
+    private void HandleCashAdded(int amountAdded)
+    {
+        RefreshCashText();
+
         if (cashText != null)
         {
             if (flashRoutine != null)
@@ -130,13 +145,13 @@ public class HUDCashUI : MonoBehaviour
         pulseRoutine = null;
     }
 
-    private IEnumerator ShowCashPopup(float amountAdded)
+    private IEnumerator ShowCashPopup(int amountAdded)
     {
         if (popupRect == null)
             yield break;
 
         cashPopupText.gameObject.SetActive(true);
-        cashPopupText.text = "+$" + amountAdded.ToString("0.00");
+        cashPopupText.text = "+$" + amountAdded.ToString("N0");
         cashPopupText.color = flashCashColor;
 
         popupRect.anchoredPosition = popupStartAnchoredPosition;

@@ -8,6 +8,7 @@ public class ShopHoverUI : MonoBehaviour
     [Header("UI")]
     public GameObject rootPanel;
     public TMP_Text descriptionText;
+    public TMP_Text costText;
     public TMP_Text warningText;
 
     [TextArea]
@@ -21,15 +22,27 @@ public class ShopHoverUI : MonoBehaviour
     void Start()
     {
         Hide();
+
+        if (descriptionText != null)
+            descriptionText.alignment = TextAlignmentOptions.Center;
+
+        if (costText != null)
+            costText.alignment = TextAlignmentOptions.Center;
+
+        if (warningText != null)
+            warningText.alignment = TextAlignmentOptions.Center;
     }
 
-    public void Show(string description)
+    public void Show(string description, string costLine)
     {
         if (rootPanel != null)
             rootPanel.SetActive(true);
 
         if (descriptionText != null)
             descriptionText.text = description;
+
+        if (costText != null)
+            costText.text = costLine;
 
         if (warningText != null)
             warningText.text = defaultWarning;

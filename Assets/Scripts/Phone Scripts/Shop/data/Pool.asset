@@ -15,5 +15,11 @@ MonoBehaviour:
   upgradeName: Pool
   description: "Permanently removes one minigame from your phone\u2019s possible
     pool, even after the day resets."
-  icon: {fileID: 21300000, guid: fbfa8995b67bbb0408e03db6073d040f, type: 3}
+  icon: {fileID: 21300000, guid: d481136e50f0cd646830530d5d47664c, type: 3}
   rarity: 4
+  basePrice: 6
+  upgradeType: 0
+  value: 0
+  durationDays: 0
+  allowDuplicateInShop: 0
+  canBuyMultiple: 1

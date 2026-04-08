@@ -15,8 +15,9 @@ MonoBehaviour:
   upgradeName: Boots
   description: "Your car gets +2 speed, but it runs a little louder. Hopefully that
     doesn\u2019t cause any complaints."
-  icon: {fileID: 21300000, guid: fbfa8995b67bbb0408e03db6073d040f, type: 3}
+  icon: {fileID: 21300000, guid: 4e0a7cd9e6961464f92119d4adfae508, type: 3}
   rarity: 1
+  basePrice: 6
   upgradeType: 1
   value: 2
   durationDays: 0

@@ -12,6 +12,9 @@ public class ShopUpgradeData : ScriptableObject
 
     public UpgradeRarity rarity;
 
+    [Header("Economy")]
+    public int basePrice = 6;
+
     [Header("Effect")]
     public ShopUpgradeType upgradeType;
     public float value = 0f;

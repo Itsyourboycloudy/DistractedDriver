@@ -14,5 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   upgradeName: Joker
   description: Copies a random upgrade you already own.
-  icon: {fileID: 21300000, guid: fbfa8995b67bbb0408e03db6073d040f, type: 3}
+  icon: {fileID: 21300000, guid: df69d3690eef00d4db3cf71ef91e85ef, type: 3}
   rarity: 3
+  basePrice: 6
+  upgradeType: 0
+  value: 0
+  durationDays: 0
+  allowDuplicateInShop: 0
+  canBuyMultiple: 1

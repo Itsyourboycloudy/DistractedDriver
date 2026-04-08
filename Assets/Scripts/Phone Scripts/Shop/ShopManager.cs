@@ -66,20 +66,30 @@ public class ShopManager : MonoBehaviour
             ShopHoverUI.Instance.Hide();
     }
 
-    public void PurchaseUpgrade(ShopUpgradeData upgrade)
+    public bool PurchaseUpgrade(ShopUpgradeData upgrade)
     {
-        if (upgrade == null) return;
+        if (upgrade == null) return false;
+        if (MoneyManager.Instance == null) return false;
 
         if (!upgrade.canBuyMultiple && purchasedUpgrades.Contains(upgrade))
         {
             Debug.Log("Already owned: " + upgrade.upgradeName);
-            return;
+            return false;
+        }
+
+        int price = MoneyManager.Instance.GetScaledUpgradePrice(upgrade.basePrice);
+
+        if (!MoneyManager.Instance.SpendCash(price))
+        {
+            Debug.Log("Not enough cash for: " + upgrade.upgradeName + " | Need $" + price);
+            return false;
         }
 
         purchasedUpgrades.Add(upgrade);
         ApplyUpgradeEffect(upgrade);
 
-        Debug.Log("Purchased upgrade: " + upgrade.upgradeName);
+        Debug.Log("Purchased upgrade: " + upgrade.upgradeName + " for $" + price);
+        return true;
     }
 
     ShopUpgradeData RollUniqueUpgrade(List<ShopUpgradeData> usedUpgrades)
@@ -100,6 +110,9 @@ public class ShopManager : MonoBehaviour
             if (!candidate.allowDuplicateInShop && usedUpgrades.Contains(candidate))
                 continue;
 
+            if (!candidate.canBuyMultiple && purchasedUpgrades.Contains(candidate))
+                continue;
+
             return candidate;
         }
 
@@ -109,6 +122,7 @@ public class ShopManager : MonoBehaviour
         {
             if (candidate == null) continue;
             if (!candidate.allowDuplicateInShop && usedUpgrades.Contains(candidate)) continue;
+            if (!candidate.canBuyMultiple && purchasedUpgrades.Contains(candidate)) continue;
 
             return candidate;
         }
