@@ -43,7 +43,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BWBlend: 1
+    - _BWBlend: 0
     - _Contrast: 1
     - _EdgeSoftness: 0.08
     - _InvertStrength: 0
@@ -51,12 +51,12 @@ Material:
     - _Radius: 0
     - _RingSize: 0.04
     - _RingStrength: 1
-    - _WaveRadius: 500
+    - _WaveRadius: 0
     - _WaveWidth: 0.12
     m_Colors:
     - _Center: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EffectCenterUV: {r: 0.61564434, g: 0.24303934, b: 0, a: 0}
+    - _EffectCenterUV: {r: 0.6156434, g: 0.24304235, b: 0, a: 0}
     - _InnerTint: {r: 0.45, g: 0.45, b: 0.45, a: 0.55}
     - _OuterRingColor: {r: 1, g: 1, b: 1, a: 0.9}
   m_BuildTextureStacks: []
