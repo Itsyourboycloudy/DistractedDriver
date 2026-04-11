@@ -56,7 +56,7 @@ Material:
     m_Colors:
     - _Center: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EffectCenterUV: {r: 0.6156434, g: 0.24304235, b: 0, a: 0}
+    - _EffectCenterUV: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _InnerTint: {r: 0.45, g: 0.45, b: 0.45, a: 0.55}
     - _OuterRingColor: {r: 1, g: 1, b: 1, a: 0.9}
   m_BuildTextureStacks: []
