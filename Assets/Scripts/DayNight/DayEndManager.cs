@@ -5,7 +5,7 @@ public class DayEndManager : MonoBehaviour
     public static DayEndManager Instance { get; private set; }
 
     [Header("Panels")]
-    public GameObject debtFailedPanel;
+    public DebtFailedPanelUI debtFailedPanelUI;
 
     private bool resolvingDayEnd = false;
 
@@ -40,8 +40,8 @@ public class DayEndManager : MonoBehaviour
         {
             Debug.Log("[DayEnd] Could not pay debt. Day failed.");
 
-            if (debtFailedPanel != null)
-                debtFailedPanel.SetActive(true);
+            if (debtFailedPanelUI != null)
+                debtFailedPanelUI.Show();
 
             return;
         }
