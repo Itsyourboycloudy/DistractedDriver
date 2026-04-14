@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -6,7 +7,7 @@ public class MenuHandCursor : MonoBehaviour
 {
     [Header("Cursor")]
     public RectTransform handCursor;
-    public float xOffset = -40f;
+    public float xOffset = -390f;
 
     [Header("Animation")]
     public float bobDistance = 8f;
@@ -21,7 +22,18 @@ public class MenuHandCursor : MonoBehaviour
     private void OnEnable()
     {
         currentIndex = 0;
-        SelectButton(currentIndex, true);
+        StartCoroutine(InitializeCursorNextFrame());
+    }
+
+    private IEnumerator InitializeCursorNextFrame()
+    {
+        yield return null;
+        Canvas.ForceUpdateCanvases();
+
+        if (buttons != null && buttons.Length > 0)
+        {
+            SelectButton(currentIndex, true);
+        }
     }
 
     private void Update()
