@@ -627,6 +627,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 517195384}
   m_CullTransparentMesh: 1
+--- !u!1 &620435515
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 620435517}
+  - component: {fileID: 620435516}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &620435516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 620435515}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8baea20629b9db4a9b3492ea2284f30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  phoneClick: {fileID: 8300000, guid: c43b39d1b7011334797476bdc1dcaeee, type: 3}
+  rideAccept: {fileID: 8300000, guid: 821803aa12326474493ae6c962189e21, type: 3}
+  uiSource: {fileID: 298730642}
+  uiMixerGroup: {fileID: -5770237352989313672, guid: 06d2fbd4cff7d494f9483038a7228100, type: 2}
+  normalPitch: 1
+  backPitch: 0.8
+--- !u!4 &620435517
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 620435515}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 73.58771, y: 1.0440143, z: -105.381256}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &888814477
 GameObject:
   m_ObjectHideFlags: 0
@@ -1280,6 +1330,7 @@ GameObject:
   - component: {fileID: 1419378925}
   - component: {fileID: 1419378924}
   - component: {fileID: 1419378923}
+  - component: {fileID: 1419378929}
   m_Layer: 5
   m_Name: QuitButton
   m_TagString: Untagged
@@ -1407,6 +1458,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1419378929}
+        m_TargetAssemblyTypeName: UIButtonSFX, Assembly-CSharp
+        m_MethodName: PlayPhoneClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1419378927
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1445,6 +1508,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1419378921}
   m_CullTransparentMesh: 1
+--- !u!114 &1419378929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419378921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8c9843795feff0439747341bcd0628e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1441988681
 GameObject:
   m_ObjectHideFlags: 0
@@ -1992,6 +2067,7 @@ GameObject:
   - component: {fileID: 1820703425}
   - component: {fileID: 1820703424}
   - component: {fileID: 1820703423}
+  - component: {fileID: 1820703429}
   m_Layer: 5
   m_Name: HowToPlayButton
   m_TagString: Untagged
@@ -2119,6 +2195,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1820703429}
+        m_TargetAssemblyTypeName: UIButtonSFX, Assembly-CSharp
+        m_MethodName: PlayPhoneClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1820703427
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2157,6 +2245,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1820703421}
   m_CullTransparentMesh: 1
+--- !u!114 &1820703429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1820703421}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8c9843795feff0439747341bcd0628e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1919132506
 GameObject:
   m_ObjectHideFlags: 0
@@ -2172,6 +2272,7 @@ GameObject:
   - component: {fileID: 1919132510}
   - component: {fileID: 1919132509}
   - component: {fileID: 1919132508}
+  - component: {fileID: 1919132514}
   m_Layer: 5
   m_Name: PlayButton
   m_TagString: Untagged
@@ -2299,6 +2400,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1919132514}
+        m_TargetAssemblyTypeName: UIButtonSFX, Assembly-CSharp
+        m_MethodName: PlayPhoneClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1919132512
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2337,6 +2450,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1919132506}
   m_CullTransparentMesh: 1
+--- !u!114 &1919132514
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1919132506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8c9843795feff0439747341bcd0628e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1929579526
 GameObject:
   m_ObjectHideFlags: 0
@@ -2767,6 +2892,7 @@ RectTransform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
+  - {fileID: 620435517}
   - {fileID: 1929579529}
   - {fileID: 1380206763}
   - {fileID: 337035544}

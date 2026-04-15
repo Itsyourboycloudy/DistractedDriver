@@ -40,6 +40,12 @@ public class DayEndManager : MonoBehaviour
         {
             Debug.Log("[DayEnd] Could not pay debt. Day failed.");
 
+            if (WorldMusicManager.Instance != null)
+                WorldMusicManager.Instance.FadeOutAndStopMusic();
+
+            if (WorldAmbienceManager.Instance != null)
+                WorldAmbienceManager.Instance.FadeOutAndStopAllAmbience();
+
             if (debtFailedPanelUI != null)
                 debtFailedPanelUI.Show();
 
@@ -47,6 +53,12 @@ public class DayEndManager : MonoBehaviour
         }
 
         Debug.Log("[DayEnd] Debt paid successfully.");
+
+        if (WorldMusicManager.Instance != null)
+            WorldMusicManager.Instance.StopAllMusicImmediate();
+
+        if (WorldAmbienceManager.Instance != null)
+            WorldAmbienceManager.Instance.StopAllAmbienceImmediate();
 
         StartNextDay();
     }
@@ -61,6 +73,9 @@ public class DayEndManager : MonoBehaviour
 
         if (TaxiRideManager.Instance != null)
             TaxiRideManager.Instance.AdvanceUpgradeDay();
+
+        if (WorldMusicManager.Instance != null)
+            WorldMusicManager.Instance.StartAllMusicSynced();
 
         resolvingDayEnd = false;
 

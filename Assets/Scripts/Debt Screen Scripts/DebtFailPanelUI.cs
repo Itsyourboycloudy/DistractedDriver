@@ -17,11 +17,21 @@ public class DebtFailedPanelUI : MonoBehaviour
 
     [Header("Fade")]
     public float fadeDuration = 1f;
+    public float textDelay = 0.35f;
+    public float textFadeDuration = 0.4f;
+
+    [Header("Audio")]
+    public AudioSource uiAudioSource;
+    public AudioClip swooshClip;
 
     [Header("Scene")]
     public string mainMenuSceneName = "MainMenu";
 
     private bool showing = false;
+
+    private CanvasGroup failTextGroup;
+    private CanvasGroup tryAgainGroup;
+    private CanvasGroup quitGroup;
 
     private void Start()
     {
@@ -34,6 +44,14 @@ public class DebtFailedPanelUI : MonoBehaviour
             canvasGroup.interactable = false;
             canvasGroup.blocksRaycasts = false;
         }
+
+        failTextGroup = GetOrAddCanvasGroup(failText != null ? failText.gameObject : null);
+        tryAgainGroup = GetOrAddCanvasGroup(tryAgainButton != null ? tryAgainButton.gameObject : null);
+        quitGroup = GetOrAddCanvasGroup(quitButton != null ? quitButton.gameObject : null);
+
+        SetGroupAlpha(failTextGroup, 0f);
+        SetGroupAlpha(tryAgainGroup, 0f);
+        SetGroupAlpha(quitGroup, 0f);
     }
 
     public void Show()
@@ -42,6 +60,9 @@ public class DebtFailedPanelUI : MonoBehaviour
             return;
 
         showing = true;
+
+        if (WorldAmbienceManager.Instance != null)
+            WorldAmbienceManager.Instance.FadeOutAndStopAllAmbience();
 
         if (root != null)
             root.SetActive(true);
@@ -54,9 +75,14 @@ public class DebtFailedPanelUI : MonoBehaviour
         float t = 0f;
 
         if (canvasGroup == null)
-        {
             yield break;
-        }
+
+        SetGroupAlpha(failTextGroup, 0f);
+        SetGroupAlpha(tryAgainGroup, 0f);
+        SetGroupAlpha(quitGroup, 0f);
+
+        if (uiAudioSource != null && swooshClip != null)
+            uiAudioSource.PlayOneShot(swooshClip);
 
         while (t < fadeDuration)
         {
@@ -66,10 +92,53 @@ public class DebtFailedPanelUI : MonoBehaviour
         }
 
         canvasGroup.alpha = 1f;
+
+        yield return new WaitForSecondsRealtime(textDelay);
+
+        yield return StartCoroutine(FadeCanvasGroup(failTextGroup, 0f, 1f, textFadeDuration));
+        yield return StartCoroutine(FadeCanvasGroup(tryAgainGroup, 0f, 1f, textFadeDuration));
+        yield return StartCoroutine(FadeCanvasGroup(quitGroup, 0f, 1f, textFadeDuration));
+
         canvasGroup.interactable = true;
         canvasGroup.blocksRaycasts = true;
 
         Time.timeScale = 0f;
+    }
+
+    private IEnumerator FadeCanvasGroup(CanvasGroup group, float start, float end, float duration)
+    {
+        if (group == null)
+            yield break;
+
+        float t = 0f;
+        group.alpha = start;
+
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+            group.alpha = Mathf.Lerp(start, end, t / duration);
+            yield return null;
+        }
+
+        group.alpha = end;
+    }
+
+    private CanvasGroup GetOrAddCanvasGroup(GameObject obj)
+    {
+        if (obj == null)
+            return null;
+
+        CanvasGroup cg = obj.GetComponent<CanvasGroup>();
+        if (cg == null)
+            cg = obj.AddComponent<CanvasGroup>();
+
+        return cg;
+    }
+
+    private void SetGroupAlpha(CanvasGroup group, float alpha)
+    {
+        if (group != null)
+            group.alpha = alpha;
     }
 
     public void OnTryAgainPressed()

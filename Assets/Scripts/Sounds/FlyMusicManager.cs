@@ -27,14 +27,19 @@ public class FlyMusicManager : MonoBehaviour
         Instance = this;
     }
 
-
     public void PlayFly1()
     {
-        if (musicSource == null || fly1Loop == null) return;
+        if (musicSource == null || fly1Loop == null)
+            return;
+
+        bool wasAlreadyPlaying = musicSource.isPlaying;
 
         StopAllCoroutines();
         transitionRequested = false;
         isTransitioning = false;
+
+        if (!wasAlreadyPlaying && WorldMusicManager.Instance != null)
+            WorldMusicManager.Instance.NotifyPhoneMusicStarted();
 
         musicSource.clip = fly1Loop;
         musicSource.loop = true;
@@ -43,14 +48,33 @@ public class FlyMusicManager : MonoBehaviour
 
     public void ReturnToFly1()
     {
-        PlayFly1();
+        if (musicSource == null || fly1Loop == null)
+            return;
+
+        bool wasAlreadyPlaying = musicSource.isPlaying;
+
+        StopAllCoroutines();
+        transitionRequested = false;
+        isTransitioning = false;
+
+        if (!wasAlreadyPlaying && WorldMusicManager.Instance != null)
+            WorldMusicManager.Instance.NotifyPhoneMusicStarted();
+
+        musicSource.clip = fly1Loop;
+        musicSource.loop = true;
+        musicSource.Play();
     }
 
     public void RequestTransitionToGameplay()
     {
-        if (musicSource == null || fly2Transition == null || fly3Loop == null) return;
-        if (transitionRequested || isTransitioning) return;
-        if (musicSource.clip != fly1Loop) return;
+        if (musicSource == null || fly2Transition == null || fly3Loop == null)
+            return;
+
+        if (transitionRequested || isTransitioning)
+            return;
+
+        if (musicSource.clip != fly1Loop)
+            return;
 
         transitionRequested = true;
         StartCoroutine(FinishFly1ThenGoToFly2ThenFly3());
@@ -87,11 +111,17 @@ public class FlyMusicManager : MonoBehaviour
 
     public void StopMusic()
     {
-        if (musicSource == null) return;
+        if (musicSource == null)
+            return;
+
+        bool wasPlaying = musicSource.isPlaying;
 
         StopAllCoroutines();
         musicSource.Stop();
         transitionRequested = false;
         isTransitioning = false;
+
+        if (wasPlaying && WorldMusicManager.Instance != null)
+            WorldMusicManager.Instance.NotifyPhoneMusicStopped();
     }
 }

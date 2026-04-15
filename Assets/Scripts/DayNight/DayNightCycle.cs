@@ -36,6 +36,9 @@ public class DayNightCycle : MonoBehaviour
     [Header("Day Count")]
     public int currentDay = 1;
 
+    [Header("Music Fade Before End")]
+    public float musicFadeBeforeEndSeconds = 3f;
+
     private float dayTimer = 0f;
     private bool dayEnded = false;
     private bool isFading = false;
@@ -43,6 +46,7 @@ public class DayNightCycle : MonoBehaviour
     private bool endingSequenceStarted = false;
     private bool timeStopPaused = false;
     private bool resolvedAfterFade = false;
+    private bool endMusicFadeStarted = false;
 
     public float DayProgress01 => Mathf.Clamp01(dayTimer / dayLengthSeconds);
     public bool DayEnded => dayEnded;
@@ -80,6 +84,16 @@ public class DayNightCycle : MonoBehaviour
             if (!timeStopPaused)
             {
                 dayTimer += Time.deltaTime;
+
+                float timeRemaining = dayLengthSeconds - dayTimer;
+
+                if (!endMusicFadeStarted && timeRemaining <= musicFadeBeforeEndSeconds)
+                {
+                    endMusicFadeStarted = true;
+
+                    if (WorldMusicManager.Instance != null)
+                        WorldMusicManager.Instance.FadeOutAndStopMusic();
+                }
 
                 if (dayTimer >= dayLengthSeconds && !endingSequenceStarted)
                 {
@@ -198,6 +212,7 @@ public class DayNightCycle : MonoBehaviour
         endingSequenceStarted = false;
         timeStopPaused = false;
         resolvedAfterFade = false;
+        endMusicFadeStarted = false;
 
         currentDay++;
 
