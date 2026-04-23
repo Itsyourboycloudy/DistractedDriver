@@ -74,6 +74,9 @@ public class DayEndManager : MonoBehaviour
         if (TaxiRideManager.Instance != null)
             TaxiRideManager.Instance.AdvanceUpgradeDay();
 
+        if (ShopManager.Instance != null)
+            ShopManager.Instance.GenerateShop();
+
         if (WorldMusicManager.Instance != null)
             WorldMusicManager.Instance.StartAllMusicSynced();
 

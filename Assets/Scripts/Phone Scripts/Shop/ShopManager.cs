@@ -42,10 +42,19 @@ public class ShopManager : MonoBehaviour
     {
         if (slots == null || slots.Length == 0) return;
 
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (slots[i] != null)
+                slots[i].ClearSlot();
+        }
+
         List<ShopUpgradeData> usedUpgrades = new List<ShopUpgradeData>();
 
         for (int i = 0; i < slots.Length; i++)
         {
+            if (slots[i] == null)
+                continue;
+
             ShopUpgradeData rolledUpgrade = RollUniqueUpgrade(usedUpgrades);
 
             if (rolledUpgrade != null)
