@@ -5,11 +5,17 @@ public class PauseMenuUI : MonoBehaviour
 {
     public static PauseMenuUI Instance { get; private set; }
 
-    [Header("Panel")]
-    public GameObject pauseMenuPanel;
+    [Header("Root")]
+    public GameObject pauseMenuRoot;
 
-    [Header("State")]
-    public bool isPaused = false;
+    [Header("Panels")]
+    public GameObject mainPanel;
+    public GameObject optionsPanel;
+    public GameObject upgradesPanel;
+    public GameObject mainMenuConfirmPanel;
+
+    [Header("Scene")]
+    public string mainMenuSceneName = "MainMenu";
 
     private void Awake()
     {
@@ -24,52 +30,73 @@ public class PauseMenuUI : MonoBehaviour
 
     private void Start()
     {
-        if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(false);
-
-        Time.timeScale = 1f;
-        isPaused = false;
+        HidePauseMenuImmediate();
     }
 
-    private void Update()
+    public void ShowPauseMenu()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (isPaused)
-                ResumeGame();
-            else
-                PauseGame();
-        }
+        if (pauseMenuRoot != null)
+            pauseMenuRoot.SetActive(true);
+
+        ShowMainPanel();
     }
 
-    public void PauseGame()
+    public void HidePauseMenuImmediate()
     {
-        if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(true);
+        if (pauseMenuRoot != null)
+            pauseMenuRoot.SetActive(false);
+    }
 
-        Time.timeScale = 0f;
-        isPaused = true;
+    public void ShowMainPanel()
+    {
+        SetOnlyPanelActive(mainPanel);
+    }
+
+    public void ShowOptionsPanel()
+    {
+        SetOnlyPanelActive(optionsPanel);
+    }
+
+    public void ShowUpgradesPanel()
+    {
+        SetOnlyPanelActive(upgradesPanel);
+    }
+
+    public void ShowMainMenuConfirmPanel()
+    {
+        SetOnlyPanelActive(mainMenuConfirmPanel);
     }
 
     public void ResumeGame()
     {
-        if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(false);
+        if (PauseAudioManager.Instance != null)
+        {
+            PauseAudioManager.Instance.SetPaused(false);
+            return;
+        }
 
         Time.timeScale = 1f;
-        isPaused = false;
+        HidePauseMenuImmediate();
     }
 
     public void GoToMainMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu");
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 
-    public void QuitGame()
+    private void SetOnlyPanelActive(GameObject target)
     {
-        Time.timeScale = 1f;
-        Application.Quit();
-        Debug.Log("Quit Game");
+        if (mainPanel != null)
+            mainPanel.SetActive(target == mainPanel);
+
+        if (optionsPanel != null)
+            optionsPanel.SetActive(target == optionsPanel);
+
+        if (upgradesPanel != null)
+            upgradesPanel.SetActive(target == upgradesPanel);
+
+        if (mainMenuConfirmPanel != null)
+            mainMenuConfirmPanel.SetActive(target == mainMenuConfirmPanel);
     }
 }

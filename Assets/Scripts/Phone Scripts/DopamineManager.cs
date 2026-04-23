@@ -159,4 +159,12 @@ public class DopamineManager : MonoBehaviour
         UpdateUI();
         Debug.Log("[Dopamine] Max dopamine upgraded. New max = " + maxDopamine);
     }
+
+    public float GetDopamineNormalized()
+    {
+        if (maxDopamine <= 0f)
+            return 0f;
+
+        return Mathf.Clamp01(currentDopamine / maxDopamine);
+    }
 }

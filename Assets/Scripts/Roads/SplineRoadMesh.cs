@@ -3,7 +3,6 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
 
-[ExecuteAlways]
 [RequireComponent(typeof(SplineContainer))]
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
@@ -30,18 +29,6 @@ public class SplineRoadMesh : MonoBehaviour
     private MeshFilter meshFilter;
     private MeshCollider meshCollider;
     private Mesh mesh;
-
-    private void OnEnable()
-    {
-        Cache();
-        Rebuild();
-    }
-
-    private void OnValidate()
-    {
-        Cache();
-        Rebuild();
-    }
 
     [ContextMenu("Rebuild Road")]
     public void Rebuild()
@@ -73,20 +60,22 @@ public class SplineRoadMesh : MonoBehaviour
         float endT = 1f - Mathf.Clamp01(trimEnd);
 
         if (endT <= startT)
-            endT = startT + 0.01f;
+            endT = Mathf.Min(1f, startT + 0.01f);
 
         float totalDistance = 0f;
         Vector3 lastPos = Vector3.zero;
+
+        Spline spline = splineContainer.Spline;
 
         for (int i = 0; i < sampleCount; i++)
         {
             float t = Mathf.Lerp(startT, endT, i / (float)(sampleCount - 1));
 
-            splineContainer.Evaluate(t, out float3 posWS, out float3 tangentWS, out float3 upWS);
+            SplineUtility.Evaluate(spline, t, out float3 posLS, out float3 tangentLS, out float3 upLS);
 
-            Vector3 pos = transform.InverseTransformPoint((Vector3)posWS);
-            Vector3 tangent = transform.InverseTransformDirection((Vector3)tangentWS).normalized;
-            Vector3 up = transform.InverseTransformDirection((Vector3)upWS).normalized;
+            Vector3 pos = (Vector3)posLS;
+            Vector3 tangent = ((Vector3)tangentLS).normalized;
+            Vector3 up = ((Vector3)upLS).normalized;
             Vector3 right = Vector3.Cross(up, tangent).normalized;
 
             pos += up * yOffset;
@@ -102,8 +91,8 @@ public class SplineRoadMesh : MonoBehaviour
             vertices.Add(leftPoint);
             vertices.Add(rightPoint);
 
-            normals.Add(Vector3.up);
-            normals.Add(Vector3.up);
+            normals.Add(up);
+            normals.Add(up);
 
             float v = totalDistance / textureTilingLength;
             uvs.Add(new Vector2(0, v));
@@ -141,6 +130,10 @@ public class SplineRoadMesh : MonoBehaviour
 
             meshCollider.sharedMesh = null;
             meshCollider.sharedMesh = mesh;
+        }
+        else if (meshCollider != null)
+        {
+            meshCollider.sharedMesh = null;
         }
     }
 
