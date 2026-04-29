@@ -39,7 +39,7 @@ public class CarController : MonoBehaviour
 
     [Header("Boost Sounds (5 levels)")]
     public AudioSource boostAudioSource;
-    public AudioClip[] boostClipsByLevel = new AudioClip[5]; // assign 5 clips
+    public AudioClip[] boostClipsByLevel = new AudioClip[5];
 
     [Header("Skid")]
     public float skidThreshold = 8f;
@@ -50,9 +50,17 @@ public class CarController : MonoBehaviour
     [Header("Upgrade Stats")]
     public float baseMoveSpeed = 22f;
     private float permanentSpeedBonus = 0f;
+
+    [Header("Ground Check")]
+    public Transform groundCheck;
+    public float groundCheckDistance = 1.2f;
+    public LayerMask groundLayer;
+    public float airControlPercent = 0.15f;
+
     private Rigidbody rb;
     private float currentSpeed = 0f;
     private bool isDrifting = false;
+    private bool isGrounded = false;
 
     // Dopamine speed boost
     private float dopamineBoost = 1f;
@@ -62,12 +70,13 @@ public class CarController : MonoBehaviour
     private int chargedLevel = 0; // 0..5
 
     // Charge SFX state
-    private int lastPlayedChargeLevel = 0;   // last level we played a charge sound for
-    private float maxLevelSfxTimer = 0f;     // timer to loop lvl 5 sound
+    private int lastPlayedChargeLevel = 0;
+    private float maxLevelSfxTimer = 0f;
 
     // Active boost
     private float boostTimer = 0f;
     private float activeBoostAdd = 0f;
+
     public AudioSource engineAudio;
     public float minPitch = 0.8f;
     public float maxPitch = 1.3f;
@@ -87,12 +96,20 @@ public class CarController : MonoBehaviour
 
         if (boostClipsByLevel == null || boostClipsByLevel.Length < boostLevels)
             Debug.LogWarning("boostClipsByLevel needs at least 'boostLevels' elements.");
+
+        if (groundCheck == null)
+            groundCheck = transform;
     }
 
     void Update()
     {
-        float speedPercent = rb.linearVelocity.magnitude / moveSpeed;
-        engineAudio.pitch = Mathf.Lerp(minPitch, maxPitch, speedPercent);
+        CheckGround();
+
+        float speedPercent = rb.linearVelocity.magnitude / Mathf.Max(moveSpeed, 0.01f);
+
+        if (engineAudio != null)
+            engineAudio.pitch = Mathf.Lerp(minPitch, maxPitch, speedPercent);
+
         if (DopamineManager.Instance != null)
             dopamineBoost = DopamineManager.Instance.GetSpeedMultiplier();
         else
@@ -104,13 +121,16 @@ public class CarController : MonoBehaviour
         HandleSkidEffects();
     }
 
+    void CheckGround()
+    {
+        isGrounded = Physics.Raycast(groundCheck.position, Vector3.down, groundCheckDistance, groundLayer);
+    }
+
     void HandleMovement()
     {
         float vertical = Input.GetAxis("Vertical");
-
         float boostedMoveSpeed = moveSpeed * dopamineBoost;
 
-        // boost countdown
         if (boostTimer > 0f)
         {
             boostTimer -= Time.deltaTime;
@@ -123,12 +143,14 @@ public class CarController : MonoBehaviour
 
         float finalTopSpeed = boostedMoveSpeed + activeBoostAdd;
 
+        float controlMultiplier = isGrounded ? 1f : airControlPercent;
+
         if (!isDrifting)
         {
             if (vertical != 0)
-                currentSpeed = Mathf.Lerp(currentSpeed, vertical * finalTopSpeed, Time.deltaTime * acceleration);
+                currentSpeed = Mathf.Lerp(currentSpeed, vertical * finalTopSpeed, Time.deltaTime * acceleration * controlMultiplier);
             else
-                currentSpeed = Mathf.Lerp(currentSpeed, 0, Time.deltaTime * brakeForce);
+                currentSpeed = Mathf.Lerp(currentSpeed, 0, Time.deltaTime * brakeForce * controlMultiplier);
         }
         else
         {
@@ -136,11 +158,11 @@ public class CarController : MonoBehaviour
             {
                 float target = vertical * finalTopSpeed;
                 target *= (1f - driftForwardSlowPercent);
-                currentSpeed = Mathf.Lerp(currentSpeed, target, Time.deltaTime * acceleration);
+                currentSpeed = Mathf.Lerp(currentSpeed, target, Time.deltaTime * acceleration * controlMultiplier);
             }
             else
             {
-                currentSpeed = Mathf.Lerp(currentSpeed, 0, Time.deltaTime * brakeForce);
+                currentSpeed = Mathf.Lerp(currentSpeed, 0, Time.deltaTime * brakeForce * controlMultiplier);
             }
         }
     }
@@ -150,38 +172,35 @@ public class CarController : MonoBehaviour
         float horizontal = Input.GetAxis("Horizontal");
         float steerMultiplier = isDrifting ? driftTurnMultiplier : 1f;
 
-        transform.Rotate(Vector3.up * horizontal * turnSpeed * steerMultiplier * Time.deltaTime);
+        float controlMultiplier = isGrounded ? 1f : airControlPercent;
+        transform.Rotate(Vector3.up * horizontal * turnSpeed * steerMultiplier * controlMultiplier * Time.deltaTime);
     }
 
     void HandleDriftChargeAndBoost()
     {
         if (Input.GetKey(driftKey))
         {
-            // first frame of drift start
             if (!isDrifting)
             {
                 isDrifting = true;
                 driftHoldTime = 0f;
                 chargedLevel = 0;
-
-                // reset charge SFX state
                 lastPlayedChargeLevel = 0;
                 maxLevelSfxTimer = 0f;
             }
 
-            // slide physics
-            Vector3 localVel = transform.InverseTransformDirection(rb.linearVelocity);
-            localVel.x = Mathf.Lerp(localVel.x, localVel.x * driftSideFriction, Time.deltaTime * 5f);
-            rb.linearVelocity = transform.TransformDirection(localVel);
+            if (isGrounded)
+            {
+                Vector3 localVel = transform.InverseTransformDirection(rb.linearVelocity);
+                localVel.x = Mathf.Lerp(localVel.x, localVel.x * driftSideFriction, Time.deltaTime * 5f);
+                rb.linearVelocity = transform.TransformDirection(localVel);
+            }
 
-            // charge time
             driftHoldTime += Time.deltaTime;
 
-            // compute level (1..5)
             int level = Mathf.FloorToInt(driftHoldTime / secondsPerLevel) + 1;
             chargedLevel = Mathf.Clamp(level, 1, boostLevels);
 
-            // play charge SFX while holding (with delay on first)
             HandleChargeSfxWhileHolding();
         }
         else
@@ -194,8 +213,6 @@ public class CarController : MonoBehaviour
             isDrifting = false;
             driftHoldTime = 0f;
             chargedLevel = 0;
-
-            // reset SFX
             lastPlayedChargeLevel = 0;
             maxLevelSfxTimer = 0f;
         }
@@ -205,21 +222,17 @@ public class CarController : MonoBehaviour
     {
         if (boostAudioSource == null || boostClipsByLevel == null) return;
 
-        // Delay the first one so quick taps don’t chirp instantly
         bool firstAllowed = driftHoldTime >= firstChargeSoundDelay;
 
-        // If we entered a new level, play it once
         if (firstAllowed && chargedLevel > lastPlayedChargeLevel)
         {
             PlayLevelClip(chargedLevel);
             lastPlayedChargeLevel = chargedLevel;
 
-            // if we just hit max, reset loop timer so it doesn't instantly double-play
             if (chargedLevel >= boostLevels)
                 maxLevelSfxTimer = 0f;
         }
 
-        // If we're at max level and still holding, loop the max level sound
         if (chargedLevel >= boostLevels && firstAllowed)
         {
             maxLevelSfxTimer += Time.deltaTime;
@@ -253,17 +266,12 @@ public class CarController : MonoBehaviour
 
         activeBoostAdd = add;
         boostTimer = boostDuration;
-
-        // OPTIONAL:
-        // If you *don't* want the boost sound here (because charge sound already played),
-        // comment this out. If you DO want a second sound on release, keep it.
-        //PlayLevelClip(level);
     }
 
     void HandleSkidEffects()
     {
         float sidewaysSpeed = Mathf.Abs(transform.InverseTransformDirection(rb.linearVelocity).x);
-        bool isSkidding = sidewaysSpeed > skidThreshold;
+        bool isSkidding = isGrounded && sidewaysSpeed > skidThreshold;
 
         if (isSkidding)
         {
@@ -285,8 +293,18 @@ public class CarController : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.linearVelocity = transform.forward * currentSpeed;
+        Vector3 velocity = rb.linearVelocity;
+
+        if (isGrounded)
+        {
+            rb.linearVelocity = transform.forward * currentSpeed + Vector3.up * velocity.y;
+        }
+        else
+        {
+            rb.linearVelocity = new Vector3(velocity.x, velocity.y, velocity.z);
+        }
     }
+
     public void AddSpeedUpgrade(float amount)
     {
         permanentSpeedBonus += amount;
@@ -298,5 +316,13 @@ public class CarController : MonoBehaviour
     public float GetCurrentBaseSpeed()
     {
         return moveSpeed;
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (groundCheck == null) return;
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawLine(groundCheck.position, groundCheck.position + Vector3.down * groundCheckDistance);
     }
 }

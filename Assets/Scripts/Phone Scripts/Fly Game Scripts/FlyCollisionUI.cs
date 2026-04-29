@@ -2,7 +2,12 @@ using UnityEngine;
 
 public class FlyCollisionUI : MonoBehaviour
 {
+    [Header("References")]
     public FlyFlapUI fly;
+
+    [Header("Audio")]
+    public AudioSource sfxSource;
+    public AudioClip hitClip;
 
     void Update()
     {
@@ -32,6 +37,7 @@ public class FlyCollisionUI : MonoBehaviour
             if (m.topHitbox != null && Overlaps(liveFlyRect, m.topHitbox))
             {
                 Debug.Log("[Collision] Hit TOP");
+                PlayHitSound();
                 fly.Hit();
                 return;
             }
@@ -39,10 +45,17 @@ public class FlyCollisionUI : MonoBehaviour
             if (m.bottomHitbox != null && Overlaps(liveFlyRect, m.bottomHitbox))
             {
                 Debug.Log("[Collision] Hit BOTTOM");
+                PlayHitSound();
                 fly.Hit();
                 return;
             }
         }
+    }
+
+    void PlayHitSound()
+    {
+        if (sfxSource != null && hitClip != null)
+            sfxSource.PlayOneShot(hitClip);
     }
 
     bool Overlaps(RectTransform a, RectTransform b)

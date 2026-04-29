@@ -16,6 +16,16 @@ public class PhoneHomeUI : MonoBehaviour
             taxiNotificationIcon.SetActive(true);
     }
 
+    public void ShowRideAccepted()
+    {
+        ShowTaxiNotification("Ride accepted");
+    }
+
+    public void ShowRideAlreadyAccepted()
+    {
+        ShowTaxiNotification("You already have a ride accepted");
+    }
+
     public void ClearTaxiNotification()
     {
         if (taxiNotificationText != null)
@@ -25,4 +35,3 @@ public class PhoneHomeUI : MonoBehaviour
             taxiNotificationIcon.SetActive(false);
     }
 }
- 

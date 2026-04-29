@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class TaxiRideManager : MonoBehaviour
 {
@@ -18,6 +19,11 @@ public class TaxiRideManager : MonoBehaviour
 
     [Header("Dialogue Popup UI (sprite pops up)")]
     public PassengerDialogueUI dialogueUI;
+
+    [Header("Dialogue Timing")]
+    public float pickupDialogueDelay = 0.25f;
+    public float dropoffDialogueDelay = 0.5f;
+    public float dialogueVisibleAfterComplete = 5f;
 
     [Header("World References")]
     public PickupZone[] pickupZones;
@@ -62,6 +68,14 @@ public class TaxiRideManager : MonoBehaviour
 
     public bool CanAcceptOffers => state == RideState.ChoosingOffer;
 
+    public bool HasActiveRide
+    {
+        get
+        {
+            return state == RideState.GoingToPickup || state == RideState.GoingToDropoff;
+        }
+    }
+
     void Awake()
     {
         Instance = this;
@@ -75,8 +89,11 @@ public class TaxiRideManager : MonoBehaviour
 
     private void SetTaxiViews(bool showOffers)
     {
-        if (offersView != null) offersView.SetActive(showOffers);
-        if (activeRideView != null) activeRideView.SetActive(!showOffers);
+        if (offersView != null)
+            offersView.SetActive(showOffers);
+
+        if (activeRideView != null)
+            activeRideView.SetActive(!showOffers);
     }
 
     private void BuildNewOffers()
@@ -111,9 +128,32 @@ public class TaxiRideManager : MonoBehaviour
                 dropoffs[i].SetActive(false);
         }
 
+        List<int> availablePassengerIndexes = new List<int>();
+
+        for (int i = 0; i < passengers.Length; i++)
+        {
+            if (passengers[i] != null)
+                availablePassengerIndexes.Add(i);
+        }
+
+        for (int i = 0; i < availablePassengerIndexes.Count; i++)
+        {
+            int randomIndex = Random.Range(i, availablePassengerIndexes.Count);
+
+            int temp = availablePassengerIndexes[i];
+            availablePassengerIndexes[i] = availablePassengerIndexes[randomIndex];
+            availablePassengerIndexes[randomIndex] = temp;
+        }
+
         for (int i = 0; i < offers.Length; i++)
         {
-            int pIndex = Random.Range(0, passengers.Length);
+            if (i >= availablePassengerIndexes.Count)
+            {
+                offers[i] = new RideOffer { IsValid = false };
+                continue;
+            }
+
+            int pIndex = availablePassengerIndexes[i];
             int dIndex = Random.Range(0, dropoffs.Length);
 
             PassengerPickup p = passengers[pIndex];
@@ -127,12 +167,12 @@ public class TaxiRideManager : MonoBehaviour
                 stars = p != null ? p.difficultyStars : 1f,
                 passengerName = p != null ? p.passengerName : "Passenger",
                 dropoffName = d != null ? d.dropoffName : "Dropoff",
-                portrait = (p != null) ? p.portraitSprite : null
+                portrait = p != null ? p.portraitSprite : null
             };
         }
 
         if (phoneHomeUI != null)
-            phoneHomeUI.ShowTaxiNotification($"{offers.Length} ride requests waiting — open Taxi app to choose.");
+            phoneHomeUI.ShowTaxiNotification($"{offers.Length} ride requests waiting. Open Taxi app to choose.");
 
         currentRideMsg = "Choose a ride:";
         currentGpsTarget = null;
@@ -148,6 +188,7 @@ public class TaxiRideManager : MonoBehaviour
     {
         if (offers == null || index < 0 || index >= offers.Length)
             return new RideOffer { IsValid = false };
+
         return offers[index];
     }
 
@@ -190,10 +231,7 @@ public class TaxiRideManager : MonoBehaviour
         currentPickupZone.rideManager = this;
         currentPickupZone.SetActive(true);
 
-        if (phoneHomeUI != null)
-            phoneHomeUI.ClearTaxiNotification();
-
-        string msg = $"{currentPassenger.passengerName} accepted — go to the pickup square";
+        string msg = $"{currentPassenger.passengerName} accepted. Go to the pickup square.";
         currentRideMsg = msg;
 
         currentGpsTarget = currentPickupZone.transform;
@@ -201,6 +239,15 @@ public class TaxiRideManager : MonoBehaviour
 
         if (offersUI != null)
             offersUI.Refresh();
+
+        if (PhoneAppManager.Instance != null)
+        {
+            PhoneAppManager.Instance.OpenHomeWithRideAccepted();
+        }
+        else if (phoneHomeUI != null)
+        {
+            phoneHomeUI.ShowRideAccepted();
+        }
 
         Debug.Log($"[TaxiRideManager] Accepted offer {offerIndex}: {currentPassenger.passengerName} -> {currentDropoff.dropoffName}");
     }
@@ -221,14 +268,25 @@ public class TaxiRideManager : MonoBehaviour
         zone.SetActive(false);
 
         PassengerPickup currentPassenger = passengers[currentPassengerIndex];
+
         if (dialogueUI != null && currentPassenger != null)
-            dialogueUI.Show(currentPassenger.passengerName, currentPassenger.portraitSprite);
+        {
+            dialogueUI.ShowLine(
+                currentPassenger.passengerName,
+                currentPassenger.portraitSprite,
+                currentPassenger.GetRandomPickupDialogue(),
+                pickupDialogueDelay,
+                dialogueVisibleAfterComplete
+            );
+        }
 
         if (currentDropoffIndex < 0 || currentDropoffIndex >= dropoffs.Length)
             return;
 
         DropoffZone currentDropoff = dropoffs[currentDropoffIndex];
-        if (currentDropoff == null) return;
+
+        if (currentDropoff == null)
+            return;
 
         currentDropoff.rideManager = this;
         currentDropoff.SetActive(true);
@@ -250,7 +308,9 @@ public class TaxiRideManager : MonoBehaviour
             return;
 
         DropoffZone currentDropoff = dropoffs[currentDropoffIndex];
-        if (currentDropoff == null) return;
+
+        if (currentDropoff == null)
+            return;
 
         if (zone != currentDropoff)
             return;
@@ -265,7 +325,19 @@ public class TaxiRideManager : MonoBehaviour
 
         string passengerName = currentPassenger != null ? currentPassenger.passengerName : "Passenger";
 
+        if (dialogueUI != null && currentPassenger != null)
+        {
+            dialogueUI.ShowLine(
+                currentPassenger.passengerName,
+                currentPassenger.portraitSprite,
+                currentPassenger.GetRandomDropoffDialogue(),
+                dropoffDialogueDelay,
+                dialogueVisibleAfterComplete
+            );
+        }
+
         float earnedFare = 0f;
+
         if (MoneyManager.Instance != null)
         {
             float originalMultiplier = MoneyManager.Instance.fareMultiplier;
@@ -274,7 +346,7 @@ public class TaxiRideManager : MonoBehaviour
             MoneyManager.Instance.SetFareMultiplier(originalMultiplier);
         }
 
-        string msg = $"Ride complete! {passengerName} is at {currentDropoff.dropoffName}. +${earnedFare:0.00}";
+        string msg = $"Ride complete! {passengerName} is at {currentDropoff.dropoffName}. +${earnedFare:0}";
         currentRideMsg = msg;
         currentGpsTarget = null;
         PushTaxiUI();
@@ -283,7 +355,7 @@ public class TaxiRideManager : MonoBehaviour
             GameManager.Instance.AddRideScore();
 
         Debug.Log("[TaxiRideManager] Current fare multiplier = " + GetCurrentFareMultiplier());
-        Debug.Log("[TaxiRideManager] Earned fare = $" + earnedFare.ToString("0.00"));
+        Debug.Log("[TaxiRideManager] Earned fare = $" + earnedFare.ToString("0"));
 
         if (nextRideRoutine != null)
             StopCoroutine(nextRideRoutine);
@@ -310,6 +382,14 @@ public class TaxiRideManager : MonoBehaviour
                 phoneTaxiUI.SetGpsTarget(currentGpsTarget);
             else
                 phoneTaxiUI.ClearGpsTarget();
+        }
+
+        if (CarGPSArrow3D.Instance != null)
+        {
+            if (currentGpsTarget != null)
+                CarGPSArrow3D.Instance.SetTarget(currentGpsTarget);
+            else
+                CarGPSArrow3D.Instance.ClearTarget();
         }
     }
 

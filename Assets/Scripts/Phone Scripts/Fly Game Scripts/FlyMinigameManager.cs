@@ -16,6 +16,10 @@ public class FlyMinigameManager : MonoBehaviour
     public GameObject mainMenuPanel;
     public GameObject startPromptPanel;
 
+    [Header("Audio")]
+    public AudioSource scoreSource;
+    public AudioSource hitSource;
+
     public bool IsPlaying { get; private set; }
     public bool WaitingForFirstClick { get; private set; }
 
@@ -136,7 +140,7 @@ public class FlyMinigameManager : MonoBehaviour
         {
             fly.gameArea = gameArea;
             fly.StartFly();
-            fly.ForceFlap(); // first click also makes the fly go up
+            fly.ForceFlap();
         }
 
         if (spawner != null)
@@ -208,6 +212,8 @@ public class FlyMinigameManager : MonoBehaviour
     {
         if (!IsPlaying) return;
 
+        PlayHitSound();
+
         IsPlaying = false;
         WaitingForFirstClick = false;
 
@@ -243,6 +249,7 @@ public class FlyMinigameManager : MonoBehaviour
         if (!IsPlaying) return;
 
         score++;
+        PlayScoreSound();
 
         if (DopamineManager.Instance != null)
             DopamineManager.Instance.IncreasePhoneGameMultiplier();
@@ -257,6 +264,22 @@ public class FlyMinigameManager : MonoBehaviour
             mult = DopamineManager.Instance.GetPhoneGameMultiplier();
 
         Debug.Log("[FlyGame] Score: " + score + " | Multiplier: " + mult + "x");
+    }
+
+    void PlayScoreSound()
+    {
+        if (scoreSource == null)
+            return;
+
+        scoreSource.Play();
+    }
+
+    void PlayHitSound()
+    {
+        if (hitSource == null)
+            return;
+
+        hitSource.Play();
     }
 
     void UpdateUI()
