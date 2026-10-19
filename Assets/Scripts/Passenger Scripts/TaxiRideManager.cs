@@ -68,6 +68,15 @@ public class TaxiRideManager : MonoBehaviour
         return preference == PassengerPreference.Speed ? $"SPEED {GetTimeTarget(offer.passengerIndex, offer.dropoffIndex):0}s / +50%"
             : preference == PassengerPreference.Smooth ? "SMOOTH / UP TO +50%" : "GAMER 5 PTS / +50%";
     }
+    public string GetEstimatedFareRange(RideOffer offer)
+    {
+        if (!offer.IsValid || MoneyManager.Instance == null) return "FARE ESTIMATE UNAVAILABLE";
+        var money = MoneyManager.Instance;
+        float multiplier = GetCurrentFareMultiplier();
+        int low = Mathf.RoundToInt(money.GetBaseFareForDay(money.currentDay) * multiplier);
+        int high = Mathf.RoundToInt((money.GetBaseFareForDay(money.currentDay) + money.fareRandomBonusMax) * multiplier);
+        return low == high ? "$" + low : "$" + low + "–$" + high;
+    }
     public void RestorePerformance(PassengerRidePerformance saved)
     {
         if (!IsGoingToDropoff || saved == null || !saved.tracking) return;

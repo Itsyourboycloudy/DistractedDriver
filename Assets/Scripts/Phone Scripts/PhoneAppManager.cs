@@ -61,6 +61,10 @@ public class PhoneAppManager : MonoBehaviour
 
     public void OpenHome()
     {
+        var shopRedesign = shopPanel != null ? shopPanel.GetComponent<PhoneShopRedesign>() : null;
+        if (shopRedesign != null) shopRedesign.Hide();
+        var arcadeSelection = gamePanel != null ? gamePanel.GetComponent<PhoneArcadeSelectionUI>() : null;
+        if (arcadeSelection != null) arcadeSelection.Hide();
         if (CurrentApp == App.Game && minigameSelector != null)
         {
             minigameSelector.ResetCurrentGame();
@@ -109,7 +113,13 @@ public class PhoneAppManager : MonoBehaviour
         EnforcePanels();
 
         if (minigameSelector != null)
-            minigameSelector.OpenRandomUnlockedGame();
+        {
+            minigameSelector.ResetCurrentGame();
+            minigameSelector.HideAllGames();
+            var arcadeSelection = gamePanel.GetComponent<PhoneArcadeSelectionUI>();
+            if (arcadeSelection == null) arcadeSelection = gamePanel.AddComponent<PhoneArcadeSelectionUI>();
+            arcadeSelection.Show();
+        }
     }
 
     public void OpenShop()
@@ -120,6 +130,8 @@ public class PhoneAppManager : MonoBehaviour
 
         if (ShopMusicPlayer.Instance != null)
             ShopMusicPlayer.Instance.PlayShopMusic();
+        var shopRedesign = shopPanel != null ? shopPanel.GetComponent<PhoneShopRedesign>() : null;
+        if (shopRedesign != null) shopRedesign.Show();
     }
 
     public void OpenHomeWithRideAccepted()

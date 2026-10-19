@@ -16,7 +16,7 @@ public class TaxiAppOffersUI : MonoBehaviour
             var offer = rideManager.GetOffer(i);
             bool hasOffer = offer.IsValid;
 
-            string title = hasOffer ? $"{offer.passengerName} → {offer.dropoffName}" : "—";
+            string title = hasOffer ? "<color=#B9F36B>" + rideManager.GetEstimatedFareRange(offer) + "</color>  " + offer.passengerName + "\n→ " + offer.dropoffName : "—";
             if (hasOffer) title += "\n<color=#FFD34E>" + rideManager.GetPreferenceSummary(offer) + "</color>";
             float stars = hasOffer ? offer.stars : 1f;
             Sprite portrait = hasOffer ? offer.portrait : null;

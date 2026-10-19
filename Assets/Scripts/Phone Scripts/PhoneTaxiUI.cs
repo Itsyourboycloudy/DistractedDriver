@@ -90,13 +90,6 @@ public class PhoneTaxiUI : MonoBehaviour
     {
         gpsTarget = target;
 
-        // ONLY show GPS if taxi app is open
-        if (!TaxiAppIsOpen())
-        {
-            SetGpsVisible(false);
-            return;
-        }
-
         if (gpsArrow != null && gpsTarget != null)
             SetGpsVisible(true);
 
@@ -111,13 +104,6 @@ public class PhoneTaxiUI : MonoBehaviour
 
     void Update()
     {
-        // if taxi app isn't open, hide gps and stop updating
-        if (!TaxiAppIsOpen())
-        {
-            SetGpsVisible(false);
-            return;
-        }
-
         if (gpsArrow == null || gpsTarget == null)
         {
             SetGpsVisible(false);

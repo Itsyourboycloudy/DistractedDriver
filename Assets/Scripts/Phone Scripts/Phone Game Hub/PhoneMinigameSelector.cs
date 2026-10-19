@@ -23,6 +23,14 @@ public class PhoneMinigameSelector : MonoBehaviour
 
     public MinigameEntry CurrentEntry { get; private set; }
 
+    public void OpenGameAt(int index)
+    {
+        if (index < 0 || index >= minigames.Count || !IsPlayable(minigames[index])) return;
+        ResetCurrentGame();
+        HideAllGames();
+        Activate(minigames[index]);
+    }
+
     public void OpenRandomUnlockedGame()
     {
         ResetCurrentGame();
@@ -56,6 +64,8 @@ public class PhoneMinigameSelector : MonoBehaviour
 
     void Activate(MinigameEntry entry)
     {
+        var selection = GetComponent<PhoneArcadeSelectionUI>();
+        if (selection != null) selection.Hide();
         CurrentEntry = entry;
         CurrentEntry.rootObject.SetActive(true);
 
