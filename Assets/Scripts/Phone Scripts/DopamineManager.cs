@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
@@ -69,11 +69,11 @@ public class DopamineManager : MonoBehaviour
 
         float normalized = maxDopamine > 0f ? currentDopamine / maxDopamine : 0f;
         float dynamicDecay = Mathf.Lerp(decayPerSecond * 0.3f, decayPerSecond, normalized);
-        currentDopamine -= dynamicDecay * dt;
+        currentDopamine -= dynamicDecay * TaxiBuildStats.DopamineDecay * dt;
 
         if (isPlayingOnPhone)
         {
-            currentDopamine += (gainPerSecond * phoneGameMultiplier) * dt;
+            currentDopamine += (gainPerSecond * phoneGameMultiplier * TaxiBuildStats.DopamineGain) * dt;
         }
 
         currentDopamine = Mathf.Clamp(currentDopamine, 0f, maxDopamine);
@@ -147,7 +147,7 @@ public class DopamineManager : MonoBehaviour
     public float GetSpeedMultiplier()
     {
         float t = maxDopamine > 0f ? currentDopamine / maxDopamine : 0f;
-        return Mathf.Lerp(0.6f, 1.5f, t);
+        return Mathf.Lerp(0.6f, TaxiBuildStats.DopamineTopSpeed, t);
     }
 
     public void AddMaxDopamineUpgrade(float amount)

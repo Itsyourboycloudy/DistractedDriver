@@ -114,6 +114,7 @@ public class PhoneAppManager : MonoBehaviour
 
     public void OpenShop()
     {
+        if (CurrentApp == App.Game && minigameSelector != null) { minigameSelector.ResetCurrentGame(); minigameSelector.HideAllGames(); }
         CurrentApp = App.Shop;
         EnforcePanels();
 

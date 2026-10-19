@@ -38,6 +38,7 @@ public class ShopManager : MonoBehaviour
         // Other managers establish their base stats in Start before restoration.
         yield return null;
         SaveJSONData.RestoreProgress(this);
+        if (SaveJSONData.TutorialMode) DayNightCycle.Instance?.SetTimeStopPaused(true);
         if (!RestoreShop()) GenerateShop();
         if (ShopHoverUI.Instance != null)
         {
@@ -114,6 +115,7 @@ public class ShopManager : MonoBehaviour
     {
         reason = "";
         if (upgrade == null) { reason = "NO UPGRADE"; return false; }
+        if (TaxiBuildStats.IsBuild(upgrade.upgradeType) && TaxiBuildStats.Count(upgrade.upgradeType) >= 3) { reason = "MAX 3 STACKS"; return false; }
         if (!upgrade.canBuyMultiple && purchasedUpgrades.Contains(upgrade)) { reason = "OWNED"; return false; }
         if (!EffectAvailable(upgrade))
         {
@@ -146,6 +148,9 @@ public class ShopManager : MonoBehaviour
                 return PhoneAppManager.Instance != null && PhoneAppManager.Instance.minigameSelector != null &&
                     PhoneAppManager.Instance.minigameSelector.CanRemoveGame;
             case ShopUpgradeType.Joker: return purchasedUpgrades.Exists(CanCopy);
+            case ShopUpgradeType.DriftKit:
+            case ShopUpgradeType.DopamineRig:
+            case ShopUpgradeType.PremiumMeter: return TaxiBuildStats.Count(u.upgradeType) < 3;
             default: return false;
         }
     }
@@ -193,7 +198,7 @@ public class ShopManager : MonoBehaviour
 
             ShopUpgradeData candidate = pool[Random.Range(0, pool.Count)];
 
-            if (candidate == null)
+            if (candidate == null || !EffectAvailable(candidate))
                 continue;
 
             if (!candidate.allowDuplicateInShop && usedUpgrades.Contains(candidate))
@@ -209,7 +214,7 @@ public class ShopManager : MonoBehaviour
 
         foreach (ShopUpgradeData candidate in allUpgrades)
         {
-            if (candidate == null) continue;
+            if (candidate == null || !EffectAvailable(candidate)) continue;
             if (!candidate.allowDuplicateInShop && usedUpgrades.Contains(candidate)) continue;
             if (!candidate.canBuyMultiple && purchasedUpgrades.Contains(candidate)) continue;
 
@@ -225,6 +230,10 @@ public class ShopManager : MonoBehaviour
 
         switch (upgrade.upgradeType)
         {
+            case ShopUpgradeType.DriftKit:
+            case ShopUpgradeType.DopamineRig:
+            case ShopUpgradeType.PremiumMeter:
+                break; // Derived from purchasedUpgrades by TaxiBuildStats.
             case ShopUpgradeType.None:
                 break;
 

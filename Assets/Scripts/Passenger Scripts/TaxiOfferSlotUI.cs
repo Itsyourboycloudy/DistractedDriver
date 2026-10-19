@@ -23,7 +23,12 @@ public class TaxiOfferSlotUI : MonoBehaviour
         rideManager = manager;
         offerIndex = index;
 
-        if (titleText != null) titleText.text = title;
+        if (titleText != null)
+        {
+            if (!titleText.enableAutoSizing) { titleText.fontSizeMax = titleText.fontSize; titleText.fontSizeMin = titleText.fontSize * 0.55f; }
+            titleText.enableAutoSizing = true;
+            titleText.text = title;
+        }
 
         if (portraitImage != null)
         {

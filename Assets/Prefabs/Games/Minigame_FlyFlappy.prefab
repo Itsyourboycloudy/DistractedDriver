@@ -1306,6 +1306,8 @@ MonoBehaviour:
   spawner: {fileID: 7212570298980174238}
   mainMenuPanel: {fileID: 2299764866394162663}
   startPromptPanel: {fileID: 7071747544700814778}
+  scoreSource: {fileID: 0}
+  hitSource: {fileID: 0}
 --- !u!82 &5717369519996404998
 AudioSource:
   m_ObjectHideFlags: 0

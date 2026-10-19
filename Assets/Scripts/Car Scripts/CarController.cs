@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class CarController : MonoBehaviour
 {
@@ -129,7 +129,7 @@ public class CarController : MonoBehaviour
     void HandleMovement()
     {
         float vertical = Input.GetAxis("Vertical");
-        float boostedMoveSpeed = moveSpeed * dopamineBoost;
+        float boostedMoveSpeed = moveSpeed * dopamineBoost * TaxiBuildStats.Speed;
 
         if (boostTimer > 0f)
         {
@@ -173,7 +173,7 @@ public class CarController : MonoBehaviour
         float steerMultiplier = isDrifting ? driftTurnMultiplier : 1f;
 
         float controlMultiplier = isGrounded ? 1f : airControlPercent;
-        transform.Rotate(Vector3.up * horizontal * turnSpeed * steerMultiplier * controlMultiplier * Time.deltaTime);
+        transform.Rotate(Vector3.up * horizontal * turnSpeed * TaxiBuildStats.Steering * steerMultiplier * controlMultiplier * Time.deltaTime);
     }
 
     void HandleDriftChargeAndBoost()
@@ -264,8 +264,8 @@ public class CarController : MonoBehaviour
             ? boostSpeedAddByLevel[idx]
             : 0f;
 
-        activeBoostAdd = add;
-        boostTimer = boostDuration;
+        activeBoostAdd = add * TaxiBuildStats.Boost;
+        boostTimer = boostDuration * TaxiBuildStats.BoostDuration;
     }
 
     void HandleSkidEffects()
@@ -303,6 +303,14 @@ public class CarController : MonoBehaviour
         {
             rb.linearVelocity = new Vector3(velocity.x, velocity.y, velocity.z);
         }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.relativeVelocity.magnitude < 3f) return;
+        // Road contacts have upward normals; only impacts against obstacles count.
+        foreach (var contact in collision.contacts)
+            if (Mathf.Abs(contact.normal.y) < 0.6f) { TaxiRideManager.Instance?.RecordRoughMove(); break; }
     }
 
     public void AddSpeedUpgrade(float amount)

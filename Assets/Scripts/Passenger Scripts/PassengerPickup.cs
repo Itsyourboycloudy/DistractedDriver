@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class PassengerPickup : MonoBehaviour
 {
     [Tooltip("Name that will show up in the phone UI")]
     public string passengerName = "Alex";
+    public PassengerPreference preference;
 
     [Header("Taxi App Portrait")]
     public Sprite portraitSprite;

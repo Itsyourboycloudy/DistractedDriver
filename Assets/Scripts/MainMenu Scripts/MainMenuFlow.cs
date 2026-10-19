@@ -26,9 +26,26 @@ public class MainMenuFlow : MonoBehaviour
     public AudioClip menuClick;
 
     bool hasPressed = false;
+    Image introArtwork;
+    SpriteRenderer flashingRenderer, pressRenderer;
 
     void Start()
     {
+        Time.timeScale = 1f;
+        flashingRenderer = flashingObj != null ? flashingObj.GetComponent<SpriteRenderer>() : null;
+        pressRenderer = pressObj != null ? pressObj.GetComponent<SpriteRenderer>() : null;
+        introArtwork = new GameObject("Responsive Intro Artwork", typeof(RectTransform), typeof(Image)).GetComponent<Image>();
+        introArtwork.transform.SetParent(introPanel.transform, false);
+        introArtwork.transform.SetAsFirstSibling();
+        introArtwork.rectTransform.anchorMin = Vector2.zero;
+        introArtwork.rectTransform.anchorMax = Vector2.one;
+        introArtwork.rectTransform.offsetMin = introArtwork.rectTransform.offsetMax = Vector2.zero;
+        introArtwork.preserveAspect = true;
+        introArtwork.raycastTarget = false;
+        if (flashingRenderer != null) flashingRenderer.enabled = false;
+        if (pressRenderer != null) pressRenderer.enabled = false;
+        var clickArea = introPanel.transform.Find("FullScreenClick");
+        if (clickArea != null) clickArea.localScale = Vector3.one;
         introPanel.SetActive(true);
         mainMenuPanel.SetActive(false);
 
@@ -42,6 +59,15 @@ public class MainMenuFlow : MonoBehaviour
             fadeOverlay.color = c;
             fadeOverlay.raycastTarget = false;
         }
+    }
+
+    void LateUpdate()
+    {
+        if (introArtwork == null) return;
+        var source = pressObj != null && pressObj.activeSelf ? pressRenderer : flashingRenderer;
+        if (source != null) introArtwork.sprite = source.sprite;
+        if (!hasPressed && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space)))
+            OnScreenClicked();
     }
 
     public void OnScreenClicked()
@@ -64,13 +90,13 @@ public class MainMenuFlow : MonoBehaviour
     {
         // wait for the press animation to finish
         float wait = (pressClip != null) ? pressClip.length : 0.25f;
-        yield return new WaitForSeconds(wait);
+        yield return new WaitForSecondsRealtime(wait);
 
         // fade out
         yield return FadeAlpha(0f, 1f, fadeOutTime);
 
         // hold black briefly
-        yield return new WaitForSeconds(blackHoldTime);
+        yield return new WaitForSecondsRealtime(blackHoldTime);
 
         // swap panels while black
         introPanel.SetActive(false);

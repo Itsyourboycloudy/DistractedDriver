@@ -40,6 +40,68 @@ public class TaxiRideManager : MonoBehaviour
     public float permanentFareBonus = 0f;
     public float temporaryFareBonus = 0f;
     public int surgeDaysRemaining = 0;
+    public PassengerRidePerformance performance = new PassengerRidePerformance();
+    float sampleTimer, lastSpeed, lastHeading, nextRoughTime, statusTimer;
+
+    public void RecordPhonePoint() { if (performance.tracking && IsGoingToDropoff && Time.timeScale > 0) performance.phonePoints++; }
+    public void RecordRoughMove()
+    {
+        if (!performance.tracking || !IsGoingToDropoff || Time.timeScale == 0 || Time.time < nextRoughTime) return;
+        performance.roughEvents++;
+        nextRoughTime = Time.time + 1f;
+    }
+    public float GetTimeTarget(int passenger, int dropoff)
+    {
+        if (passenger < 0 || passenger >= pickupZones.Length || dropoff < 0 || dropoff >= dropoffs.Length) return 60;
+        return Mathf.Ceil(Mathf.Max(30, Vector3.Distance(pickupZones[passenger].transform.position, dropoffs[dropoff].transform.position) / 12f + 20));
+    }
+    public string GetPreferenceGoal(RideOffer offer)
+    {
+        if (!offer.IsValid) return "";
+        return new PassengerRidePerformance { preference = passengers[offer.passengerIndex].preference,
+            timeTarget = GetTimeTarget(offer.passengerIndex, offer.dropoffIndex) }.Goal;
+    }
+    public string GetPreferenceSummary(RideOffer offer)
+    {
+        if (!offer.IsValid) return "";
+        var preference = passengers[offer.passengerIndex].preference;
+        return preference == PassengerPreference.Speed ? $"SPEED {GetTimeTarget(offer.passengerIndex, offer.dropoffIndex):0}s / +50%"
+            : preference == PassengerPreference.Smooth ? "SMOOTH / UP TO +50%" : "GAMER 5 PTS / +50%";
+    }
+    public void RestorePerformance(PassengerRidePerformance saved)
+    {
+        if (!IsGoingToDropoff || saved == null || !saved.tracking) return;
+        performance = saved;
+        ResetDrivingSample();
+    }
+    void ResetDrivingSample()
+    {
+        sampleTimer = 0; nextRoughTime = Time.time + 1f;
+        if (CarController.Instance == null) return;
+        lastHeading = CarController.Instance.transform.eulerAngles.y;
+        lastSpeed = CarController.Instance.GetComponent<Rigidbody>().linearVelocity.magnitude;
+    }
+    void Update()
+    {
+        if (!IsGoingToDropoff || !performance.tracking || Time.timeScale == 0) return;
+        performance.elapsed += Time.deltaTime;
+        sampleTimer += Time.deltaTime; statusTimer += Time.deltaTime;
+        var car = CarController.Instance;
+        if (car != null && sampleTimer >= 0.2f)
+        {
+            float speed = car.GetComponent<Rigidbody>().linearVelocity.magnitude;
+            float heading = car.transform.eulerAngles.y;
+            float turnRate = Mathf.Abs(Mathf.DeltaAngle(lastHeading, heading)) / sampleTimer;
+            float braking = (lastSpeed - speed) / sampleTimer;
+            if ((speed > 4 && turnRate > 80) || (lastSpeed > 6 && braking > 18)) RecordRoughMove();
+            lastHeading = heading; lastSpeed = speed; sampleTimer = 0;
+        }
+        if (statusTimer >= 0.25f)
+        {
+            statusTimer = 0;
+            phoneTaxiUI?.SetRideInfo(currentRideMsg + "\n" + performance.Status);
+        }
+    }
 
     private enum RideState { Idle, ChoosingOffer, GoingToPickup, GoingToDropoff }
     private RideState state = RideState.Idle;
@@ -273,6 +335,10 @@ public class TaxiRideManager : MonoBehaviour
             return;
 
         state = RideState.GoingToDropoff;
+        performance = new PassengerRidePerformance {
+            tracking = true, preference = passengers[currentPassengerIndex].preference,
+            timeTarget = GetTimeTarget(currentPassengerIndex, currentDropoffIndex) };
+        ResetDrivingSample();
 
         zone.SetActive(false);
 
@@ -283,7 +349,7 @@ public class TaxiRideManager : MonoBehaviour
             dialogueUI.ShowLine(
                 currentPassenger.passengerName,
                 currentPassenger.portraitSprite,
-                currentPassenger.GetRandomPickupDialogue(),
+                currentPassenger.GetRandomPickupDialogue() + "\n" + performance.Goal,
                 pickupDialogueDelay,
                 dialogueVisibleAfterComplete
             );
@@ -300,7 +366,7 @@ public class TaxiRideManager : MonoBehaviour
         currentDropoff.rideManager = this;
         currentDropoff.SetActive(true);
 
-        string msg = $"Taking {currentPassenger.passengerName} to {currentDropoff.dropoffName}";
+        string msg = $"Taking {currentPassenger.passengerName} to {currentDropoff.dropoffName}\n{performance.Goal}";
         currentRideMsg = msg;
         currentGpsTarget = currentDropoff.transform;
         PushTaxiUI();
@@ -327,6 +393,7 @@ public class TaxiRideManager : MonoBehaviour
 
         zone.SetActive(false);
         state = RideState.Idle;
+        performance.tracking = false;
 
         PassengerPickup currentPassenger =
             (currentPassengerIndex >= 0 && currentPassengerIndex < passengers.Length)
@@ -347,16 +414,23 @@ public class TaxiRideManager : MonoBehaviour
         }
 
         float earnedFare = 0f;
+        int preferenceTip = 0;
 
         if (MoneyManager.Instance != null)
         {
             float originalMultiplier = MoneyManager.Instance.fareMultiplier;
             MoneyManager.Instance.SetFareMultiplier(GetCurrentFareMultiplier());
             earnedFare = MoneyManager.Instance.AddRideFare();
+            preferenceTip = performance.Tip(Mathf.RoundToInt(earnedFare));
+            if (preferenceTip > 0) MoneyManager.Instance.AddCash(preferenceTip);
             MoneyManager.Instance.SetFareMultiplier(originalMultiplier);
         }
 
-        string msg = $"Ride complete! {passengerName} is at {currentDropoff.dropoffName}. +${earnedFare:0}";
+        string msg = $"Ride complete! {passengerName}: ${earnedFare:0} fare + ${preferenceTip} preference tip";
+        if (dialogueUI != null && currentPassenger != null)
+            dialogueUI.ShowLine(passengerName, currentPassenger.portraitSprite,
+                currentPassenger.GetRandomDropoffDialogue() + "\n" + msg,
+                dropoffDialogueDelay, dialogueVisibleAfterComplete);
         currentRideMsg = msg;
         currentGpsTarget = null;
         PushTaxiUI();
@@ -426,7 +500,7 @@ public class TaxiRideManager : MonoBehaviour
             surgeDaysRemaining = Mathf.Max(surgeDaysRemaining, boost.days);
         }
     }
-    public float GetCurrentFareMultiplier() { return 1f + permanentFareBonus + temporaryFareBonus; }
+    public float GetCurrentFareMultiplier() { return (1f + permanentFareBonus + temporaryFareBonus) * TaxiBuildStats.Fare; }
     public void AdvanceUpgradeDay()
     {
         foreach (var boost in fareBoosts) boost.days--;

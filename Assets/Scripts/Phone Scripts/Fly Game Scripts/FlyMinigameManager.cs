@@ -24,6 +24,7 @@ public class FlyMinigameManager : MonoBehaviour
     public bool WaitingForFirstClick { get; private set; }
 
     private int score;
+    public void NextGame() { PhoneAppManager.Instance?.minigameSelector?.NextGame(); }
 
     void Awake()
     {
@@ -37,7 +38,7 @@ public class FlyMinigameManager : MonoBehaviour
 
     void Update()
     {
-        if (WaitingForFirstClick && Input.GetMouseButtonDown(0))
+        if (Time.timeScale > 0 && WaitingForFirstClick && Input.GetMouseButtonDown(0))
         {
             BeginActualRun();
         }
@@ -249,6 +250,7 @@ public class FlyMinigameManager : MonoBehaviour
         if (!IsPlaying) return;
 
         score++;
+        TaxiRideManager.Instance?.RecordPhonePoint();
         PlayScoreSound();
 
         if (DopamineManager.Instance != null)

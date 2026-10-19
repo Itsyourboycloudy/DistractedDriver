@@ -7,5 +7,8 @@ public enum ShopUpgradeType
     SurgePricing,
     TimeStopUnlock,
     RemoveMinigame,
-    Joker
+    Joker,
+    DriftKit,
+    DopamineRig,
+    PremiumMeter
 }

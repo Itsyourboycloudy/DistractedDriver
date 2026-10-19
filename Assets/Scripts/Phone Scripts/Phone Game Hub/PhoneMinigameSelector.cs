@@ -11,6 +11,7 @@ public class PhoneMinigameSelector : MonoBehaviour
 
         [Header("Managers")]
         public FlyMinigameManager flyFlappyManager;
+        public WhackAFlyGame whackAFlyManager;
 
         [Header("Unlock")]
         public bool unlocked;
@@ -24,6 +25,7 @@ public class PhoneMinigameSelector : MonoBehaviour
 
     public void OpenRandomUnlockedGame()
     {
+        ResetCurrentGame();
         HideAllGames();
 
         List<MinigameEntry> unlockedGames = new List<MinigameEntry>();
@@ -40,7 +42,21 @@ public class PhoneMinigameSelector : MonoBehaviour
             return;
         }
 
-        CurrentEntry = unlockedGames[Random.Range(0, unlockedGames.Count)];
+        Activate(unlockedGames[Random.Range(0, unlockedGames.Count)]);
+    }
+
+    public void NextGame()
+    {
+        var playable = minigames.FindAll(IsPlayable);
+        if (playable.Count == 0) return;
+        int index = (playable.IndexOf(CurrentEntry) + 1) % playable.Count;
+        ResetCurrentGame(); HideAllGames();
+        Activate(playable[index]);
+    }
+
+    void Activate(MinigameEntry entry)
+    {
+        CurrentEntry = entry;
         CurrentEntry.rootObject.SetActive(true);
 
         switch (CurrentEntry.gameType)
@@ -50,6 +66,9 @@ public class PhoneMinigameSelector : MonoBehaviour
                     CurrentEntry.flyFlappyManager.StartGame();
                 break;
 
+            case PhoneMinigameType.WhackAFly:
+                CurrentEntry.whackAFlyManager.StartGame();
+                break;
             case PhoneMinigameType.PixelJump:
                 Debug.Log("[MinigameSelector] PixelJump selected, but no manager is hooked up yet.");
                 break;
@@ -75,6 +94,9 @@ public class PhoneMinigameSelector : MonoBehaviour
                     CurrentEntry.flyFlappyManager.ResetGame();
                 break;
 
+            case PhoneMinigameType.WhackAFly:
+                CurrentEntry.whackAFlyManager.ResetGame();
+                break;
             case PhoneMinigameType.PixelJump:
                 Debug.Log("[MinigameSelector] Reset PixelJump when its manager exists.");
                 break;
@@ -123,7 +145,7 @@ public class PhoneMinigameSelector : MonoBehaviour
     public bool IsPlayable(MinigameEntry entry)
     {
         return entry != null && entry.unlocked && !entry.removed && entry.rootObject != null &&
-            entry.gameType == PhoneMinigameType.FlyFlappy && entry.flyFlappyManager != null;
+            ((entry.gameType == PhoneMinigameType.FlyFlappy && entry.flyFlappyManager != null) || (entry.gameType == PhoneMinigameType.WhackAFly && entry.whackAFlyManager != null));
     }
     public bool CanRemoveGame => minigames.FindAll(IsPlayable).Count > 1;
     public bool RemoveRandomPlayableGame()

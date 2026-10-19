@@ -4,5 +4,6 @@ public enum PhoneMinigameType
     PixelJump,
     Game3, //temp
     Game4, //temp
-    Game5 //temp
+    Game5, //temp
+    WhackAFly
 }

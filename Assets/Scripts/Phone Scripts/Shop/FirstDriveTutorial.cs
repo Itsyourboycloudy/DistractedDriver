@@ -15,6 +15,11 @@ public class FirstDriveTutorial : MonoBehaviour
         if (ShopHoverUI.Instance == null) return;
         if (!IsRunning)
         {
+            if (SaveJSONData.TutorialMode)
+            {
+                ShopHoverUI.Instance.SetTutorial("Practice complete! Try the phone games or more fares. Press Esc and choose Main Menu to leave. Your saved run is unchanged.", "TUTORIAL COMPLETE", "PRACTICE - NOT SAVED");
+                ClearHighlight(); return;
+            }
             ShopHoverUI.Instance.SetTutorial(null, null, null); ClearHighlight(); return;
         }
         if (Time.timeScale == 0f) return;
@@ -58,7 +63,7 @@ public class FirstDriveTutorial : MonoBehaviour
                 }
             }
         }
-        ShopHoverUI.Instance.SetTutorial(message, status, "F8 - SKIP TUTORIAL");
+        ShopHoverUI.Instance.SetTutorial(message, status, SaveJSONData.TutorialMode ? "PRACTICE - NOT SAVED  |  F8 SKIP  |  ESC MENU" : "F8 - SKIP TUTORIAL");
     }
 
     public void PrepareStarterPurchase()

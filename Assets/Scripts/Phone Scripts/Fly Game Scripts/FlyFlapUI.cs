@@ -45,7 +45,7 @@ public class FlyFlapUI : MonoBehaviour
 
     void Update()
     {
-        if (!isPlaying || dead)
+        if (!isPlaying || dead || Time.timeScale == 0)
         {
             if (!dead && img != null && passiveSprite != null)
                 img.sprite = passiveSprite;
